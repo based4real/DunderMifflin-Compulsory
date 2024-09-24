@@ -1,10 +1,11 @@
 ﻿using DataAccess.Models;
+using Service.TransferModels;
 
 namespace Service.Interfaces;
 
 public interface ICustomerService
 {
-    public List<Customer> All();
+    public Task<List<CustomerDetailViewModel>> All();
     
-    public Customer ById(int id);
+    public Task<CustomerDetailViewModel?> ById(int id);
 }

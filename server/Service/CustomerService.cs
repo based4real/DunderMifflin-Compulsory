@@ -1,18 +1,26 @@
-﻿using DataAccess.Interfaces;
-using DataAccess.Models;
+﻿using DataAccess;
+using Microsoft.EntityFrameworkCore;
 using Service.Interfaces;
+using Service.TransferModels;
 
 namespace Service;
 
-public class CustomerService(ICustomerRepository repository) : ICustomerService
+public class CustomerService(AppDbContext context) : ICustomerService
 {
-    public List<Customer> All()
+    public async Task<List<CustomerDetailViewModel>> All()
     {
-        return repository.All();
+        return await context.Customers
+            .Include(customer => customer.Orders)
+            .Select(customer => CustomerDetailViewModel.FromEntity(customer))
+            .ToListAsync();
     }
 
-    public Customer ById(int id)
+    public async Task<CustomerDetailViewModel?> ById(int id)
     {
-        return repository.ById(id);
+        return await context.Customers
+            .Include(customer => customer.Orders)
+            .Where(customer => customer.Id == id)
+            .Select(customer => CustomerDetailViewModel.FromEntity(customer))
+            .SingleOrDefaultAsync();
     }
 }
