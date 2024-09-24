@@ -13,4 +13,15 @@ public class CustomerController(ICustomerService service) : ControllerBase
     {
         return Ok(service.All());
     }
+
+    [HttpGet]
+    [Route("{id}")]
+    public ActionResult<Customer> Get(int id)
+    {
+        var customer = service.ById(id);
+        if (customer == null)
+            return NotFound();
+        
+        return Ok(customer);
+    }
 }

@@ -10,4 +10,9 @@ public class CustomerService(ICustomerRepository repository) : ICustomerService
     {
         return repository.All();
     }
+
+    public Customer ById(int id)
+    {
+        return repository.ById(id);
+    }
 }
