@@ -4,7 +4,9 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>server</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="NSwag.AspNetCore" Version="14.1.0" />
+  </ItemGroup>
 </Project>
