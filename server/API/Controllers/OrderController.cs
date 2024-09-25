@@ -9,6 +9,7 @@ namespace API.Controllers;
 [Route("[controller]")]
 public class OrderController(IOrderService service) : ControllerBase
 {
+    [HttpPost]
     public async Task<ActionResult<OrderDetailViewModel>> CreateOrder([FromBody] OrderCreateModel order)
     {
         if (!ModelState.IsValid)
