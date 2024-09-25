@@ -1,7 +1,7 @@
-﻿using DataAccess.Models;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
-using Service.Models.Order;
+using Service.Models.Requests;
+using Service.Models.Responses;
 
 namespace API.Controllers;
 
@@ -12,13 +12,6 @@ public class OrderController(IOrderService service) : ControllerBase
     [HttpPost]
     public async Task<ActionResult<OrderDetailViewModel>> CreateOrder([FromBody] OrderCreateModel order)
     {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
-
-        var created = await service.Create(order);
-        if (created == null)
-            return BadRequest("An error occured");
-
-        return created;
+        return Ok(await service.Create(order));
     }
 }

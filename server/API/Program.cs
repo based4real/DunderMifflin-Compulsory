@@ -1,3 +1,4 @@
+using API.ExceptionHandler;
 using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Service;
@@ -17,12 +18,21 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddControllers();
 builder.Services.AddOpenApiDocument();
 
+builder.Services.AddProblemDetails(options =>
+options.CustomizeProblemDetails = ctx =>
+{
+    ctx.ProblemDetails.Extensions.Add("instance", $"{ctx.HttpContext.Request.Method} {ctx.HttpContext.Request.Path}");
+});
+
+builder.Services.AddExceptionHandler<ExceptionToProblemDetailsHandler>();
+
 var app = builder.Build();
 
 // Middleware
 app.UseOpenApi();
 app.UseSwaggerUi();
 app.UseStatusCodePages();
+app.UseExceptionHandler();
 
 app.UseCors(config => config.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 

@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
-using Service.TransferModels;
+using Service.Models.Responses;
 
 namespace API.Controllers;
 
@@ -11,18 +12,13 @@ public class CustomerController(ICustomerService service) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<CustomerDetailViewModel>>> All()
     {
-        var result = await service.All();
-        return Ok(result);
+        return Ok(await service.All());
     }
 
     [HttpGet]
     [Route("{id}")]
-    public async Task<ActionResult<CustomerDetailViewModel?>> Get(int id)
+    public async Task<ActionResult<CustomerDetailViewModel?>> Get([Range(1, int.MaxValue)] int id)
     {
-        var customer = await service.ById(id);
-        if (customer == null)
-            return NotFound();
-        
-        return Ok(customer);
+        return Ok(await service.ById(id));
     }
 }
