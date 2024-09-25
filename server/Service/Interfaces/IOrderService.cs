@@ -1,5 +1,5 @@
-﻿using DataAccess.Models;
-using Service.Models.Order;
+﻿using Service.Models.Requests;
+using Service.Models.Responses;
 
 namespace Service.Interfaces;
 

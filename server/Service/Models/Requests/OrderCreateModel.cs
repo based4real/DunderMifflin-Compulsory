@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Service.Models.Order;
+namespace Service.Models.Requests;
 
 
 public class OrderCreateModel
@@ -13,7 +13,7 @@ public class OrderCreateModel
 
     public DataAccess.Models.Order ToOrder()
     {
-        return new DataAccess.Models.Order()
+        return new DataAccess.Models.Order
         {
             CustomerId = CustomerId,
             OrderDate = DateTime.UtcNow,

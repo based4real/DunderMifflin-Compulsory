@@ -1,5 +1,6 @@
-﻿namespace Service.Models.Order;
-using DataAccess.Models;
+﻿using DataAccess.Models;
+
+namespace Service.Models.Responses;
 
 public class OrderDetailViewModel
 {

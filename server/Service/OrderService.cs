@@ -1,9 +1,9 @@
 ﻿using DataAccess;
-using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
+using Service.Exceptions;
 using Service.Interfaces;
-using Service.Models.Order;
+using Service.Models.Requests;
+using Service.Models.Responses;
 
 namespace Service;
 
@@ -26,7 +26,7 @@ public class OrderService(AppDbContext context) : IOrderService
             {
                 var product = products.Find(p => p.Id == entry.ProductId);
                 if (product == null)
-                    throw new InvalidOperationException("Product not found.");
+                    throw new NotFoundException("Product not found.");
 
                 return product.Price * entry.Quantity;
             });
@@ -42,10 +42,6 @@ public class OrderService(AppDbContext context) : IOrderService
         catch (DbUpdateException ex)
         {
             throw new DbUpdateException("An error occurred while trying to insert Order into database.", ex);
-        }
-        catch (InvalidOperationException ex)
-        {
-            throw new InvalidOperationException("An error occurred while processing the order.", ex);
         }
     }
 }

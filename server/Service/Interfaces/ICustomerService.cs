@@ -1,5 +1,4 @@
-﻿using DataAccess.Models;
-using Service.TransferModels;
+﻿using Service.Models.Responses;
 
 namespace Service.Interfaces;
 

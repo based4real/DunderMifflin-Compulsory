@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using DataAccess.Models;
 
-namespace Service.Models.Order;
+namespace Service.Models.Requests;
 
 public class OrderCreateEntryModel
 {
@@ -22,7 +22,7 @@ public class OrderCreateEntryModel
         };
     }
     
-    public OrderEntry ToOrderEntry(DataAccess.Models.Order order)
+    public OrderEntry ToOrderEntry(Order order)
     {
         return new OrderEntry
         {

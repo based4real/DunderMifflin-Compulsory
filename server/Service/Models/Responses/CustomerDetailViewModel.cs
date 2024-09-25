@@ -1,6 +1,6 @@
 ﻿using DataAccess.Models;
 
-namespace Service.TransferModels;
+namespace Service.Models.Responses;
 
 public class CustomerDetailViewModel
 {

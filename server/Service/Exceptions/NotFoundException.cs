@@ -1,15 +1,8 @@
-﻿using System.Runtime.Serialization;
-
-namespace Service;
+﻿namespace Service.Exceptions;
 
 [Serializable]
 public class NotFoundException : Exception
 {
-    //
-    // For guidelines regarding the creation of new exception types, see
-    //    https://msdn.microsoft.com/en-us/library/ms229064(v=vs.100).aspx
-    //
-
     public NotFoundException()
     {
     }
@@ -22,13 +15,9 @@ public class NotFoundException : Exception
     {
     }
 
-    protected NotFoundException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
-    }
-
     public static NotFoundException FromJson(dynamic json)
     {
-        string text = ""; // parse from json here
+        const string text = "";
 
         return new NotFoundException(text);
     }
