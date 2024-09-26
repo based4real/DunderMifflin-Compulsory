@@ -1,4 +1,5 @@
-﻿using Service.Models.Requests;
+﻿using DataAccess.Models;
+using Service.Models.Requests;
 using Service.Models.Responses;
 
 namespace Service.Interfaces;

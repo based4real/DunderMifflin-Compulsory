@@ -9,6 +9,7 @@ namespace Service;
 
 public class OrderService(AppDbContext context) : IOrderService
 {
+    // Kan blive delt ud i flere metoder senere
     public async Task<OrderDetailViewModel> Create(OrderCreateModel order)
     {
         try
@@ -19,14 +20,21 @@ public class OrderService(AppDbContext context) : IOrderService
                 .Where(p => order.OrderEntries.Select(entry => entry.ProductId).Contains(p.Id))
                 .ToListAsync();
 
-            if (products.Any(p => p.Discontinued))
-                throw new InvalidOperationException("One or more items are discontinued.");
-
+            var discontinuedProducts = products.Where(p => p.Discontinued).ToList();
+            if (discontinuedProducts.Count > 0)
+            {
+                var discontinuedProductNames = string.Join(", ", discontinuedProducts.Select(p => p.Name));
+                throw new InvalidOperationException($"The following items are discontinued: {discontinuedProductNames}.");
+            }
+            
             newOrder.TotalAmount = order.OrderEntries.Sum(entry =>
             {
                 var product = products.Find(p => p.Id == entry.ProductId);
                 if (product == null)
-                    throw new NotFoundException("Product not found.");
+                    throw new NotFoundException($"Product {entry.ProductId} not found.");
+
+                if (entry.Quantity > product.Stock)
+                    throw new InvalidOperationException($"Insufficient stock for {product.Name}. Requested: {entry.Quantity}, Available: {product.Stock}.");
 
                 return product.Price * entry.Quantity;
             });
