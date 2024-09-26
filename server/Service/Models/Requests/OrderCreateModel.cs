@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using DataAccess.Models;
 
 namespace Service.Models.Requests;
 
@@ -11,13 +12,16 @@ public class OrderCreateModel
     
     public required IEnumerable<OrderCreateEntryModel> OrderEntries { get; set; }
 
-    public DataAccess.Models.Order ToOrder()
+    public Order ToOrder()
     {
-        return new DataAccess.Models.Order
+        var newOrder = new Order
         {
             CustomerId = CustomerId,
             OrderDate = DateTime.UtcNow,
-            DeliveryDate = DateOnly.FromDateTime(DateTime.Today.AddDays(3)),
+            DeliveryDate = DateOnly.FromDateTime(DateTime.Today.AddDays(3))
         };
+
+        newOrder.OrderEntries = OrderEntries.Select(entry => entry.ToOrderEntry(newOrder)).ToList();
+        return newOrder;
     }
 }
