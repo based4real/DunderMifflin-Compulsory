@@ -11,7 +11,7 @@ public class OrderEntryDetailViewModel
     public double Price { get; set; }
     public double TotalPrice { get; set; }
 
-    public static OrderEntryDetailViewModel fromEntity(OrderEntry entry)
+    public static OrderEntryDetailViewModel FromEntity(OrderEntry entry)
     {
         return new OrderEntryDetailViewModel
         {

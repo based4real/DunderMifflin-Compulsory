@@ -21,7 +21,7 @@ public class OrderDetailViewModel
             DeliveryDate = order.DeliveryDate,
             Status = order.Status,
             TotalPrice = order.TotalAmount,
-            Entry = order.OrderEntries.Select(x => OrderEntryDetailViewModel.fromEntity(x))
+            Entry = order.OrderEntries.Select(OrderEntryDetailViewModel.FromEntity)
         };
     }
 }
