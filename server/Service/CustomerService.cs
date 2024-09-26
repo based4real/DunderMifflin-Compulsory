@@ -30,13 +30,18 @@ public class CustomerService(AppDbContext context) : ICustomerService
         return result;
     }
 
-    public async Task<List<CustomerOrderDetailViewModel>> GetOrderHistoryForAll()
+    public async Task<List<CustomerOrderDetailViewModel>> AllWithOrderHistory()
     {
-        return context.Customers
+        var customers = await context.Customers
             .Where(o => o.Orders.Count > 0)
             .Include(c => c.Orders)
-                .ThenInclude(d => d.OrderEntries)
-                    .ThenInclude(e => e.Product)
-            .Select(customer => CustomerOrderDetailViewModel.FromEntity(customer)).ToList();
+            .ThenInclude(d => d.OrderEntries)
+            .ThenInclude(e => e.Product)
+            .Select(customer => CustomerOrderDetailViewModel.FromEntity(customer)).ToListAsync();
+
+        if (customers.Count == 0)
+            throw new NotFoundException("No customers with order history found");
+
+        return customers;
     }
 }

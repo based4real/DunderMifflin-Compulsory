@@ -10,9 +10,16 @@ namespace API.Controllers;
 public class CustomerController(ICustomerService service) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<List<CustomerDetailViewModel>>> All()
+    public async Task<ActionResult<List<CustomerDetailViewModel>>> All([FromQuery] bool orders = false)
     {
-        return Ok(await service.All());
+        if (orders)
+        {
+            return Ok(await service.AllWithOrderHistory());
+        }
+        else
+        {
+            return Ok(await service.All());
+        }
     }
 
     [HttpGet]
@@ -20,13 +27,5 @@ public class CustomerController(ICustomerService service) : ControllerBase
     public async Task<ActionResult<CustomerDetailViewModel?>> Get([Range(1, int.MaxValue)] int id)
     {
         return Ok(await service.ById(id));
-    }
-    
-    
-    [HttpGet]
-    [Route("/all")]
-    public async Task<ActionResult<List<CustomerOrderDetailViewModel>>> AllOrderHistory()
-    {
-        return Ok(await service.GetOrderHistoryForAll());
     }
 }

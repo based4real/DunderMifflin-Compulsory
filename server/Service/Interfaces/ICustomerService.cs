@@ -8,6 +8,5 @@ public interface ICustomerService
     
     public Task<CustomerDetailViewModel?> ById(int id);
     
-    public Task<List<CustomerOrderDetailViewModel>> GetOrderHistoryForAll();
-
+    public Task<List<CustomerOrderDetailViewModel>> AllWithOrderHistory();
 }
