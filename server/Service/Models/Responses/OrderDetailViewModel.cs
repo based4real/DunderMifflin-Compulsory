@@ -10,13 +10,15 @@ public class OrderDetailViewModel
     public string? Status { get; set; } // enum?
     public double TotalPrice { get; set; }
     
-    public required IEnumerable<Item> Orders { get; set; }
+    public required IEnumerable<Item> Entry { get; set; }
 
     public class Item
     {
         public int Id { get; set; }
         public int Quantity { get; set; }
         public int? ProductId { get; set; }
+        public double Price { get; set; }
+        public double TotalPrice { get; set; }
     }
 
     public static OrderDetailViewModel FromEntity(Order order)
@@ -28,11 +30,13 @@ public class OrderDetailViewModel
             DeliveryDate = order.DeliveryDate,
             Status = order.Status,
             TotalPrice = order.TotalAmount,
-            Orders = order.OrderEntries.Select(x => new Item
+            Entry = order.OrderEntries.Select(x => new Item
             {
                 Id = x.Id,
                 Quantity = x.Quantity,
-                ProductId = x.ProductId
+                ProductId = x.ProductId,
+                Price = x.Product?.Price ?? 0,
+                TotalPrice = x.Product?.Price * x.Quantity ?? 0
             })
         };
     }

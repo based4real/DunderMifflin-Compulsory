@@ -7,4 +7,7 @@ public interface ICustomerService
     public Task<List<CustomerDetailViewModel>> All();
     
     public Task<CustomerDetailViewModel?> ById(int id);
+    
+    public Task<List<CustomerOrderDetailViewModel>> GetOrderHistoryForAll();
+
 }

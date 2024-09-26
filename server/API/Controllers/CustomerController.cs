@@ -21,4 +21,12 @@ public class CustomerController(ICustomerService service) : ControllerBase
     {
         return Ok(await service.ById(id));
     }
+    
+    
+    [HttpGet]
+    [Route("/all")]
+    public async Task<ActionResult<List<CustomerOrderDetailViewModel>>> AllOrderHistory()
+    {
+        return Ok(await service.GetOrderHistoryForAll());
+    }
 }

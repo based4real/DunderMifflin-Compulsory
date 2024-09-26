@@ -29,4 +29,14 @@ public class CustomerService(AppDbContext context) : ICustomerService
 
         return result;
     }
+
+    public async Task<List<CustomerOrderDetailViewModel>> GetOrderHistoryForAll()
+    {
+        return context.Customers
+            .Where(o => o.Orders.Count > 0)
+            .Include(c => c.Orders)
+                .ThenInclude(d => d.OrderEntries)
+                    .ThenInclude(e => e.Product)
+            .Select(customer => CustomerOrderDetailViewModel.FromEntity(customer)).ToList();
+    }
 }
