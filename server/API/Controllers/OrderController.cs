@@ -6,7 +6,7 @@ using Service.Models.Responses;
 namespace API.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/[controller]")]
 public class OrderController(IOrderService service) : ControllerBase
 {
     [HttpPost]
