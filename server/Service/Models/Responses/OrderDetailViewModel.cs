@@ -8,7 +8,7 @@ public class OrderDetailViewModel
     public DateTime OrderDate { get; set; }
     public DateOnly? DeliveryDate { get; set; }
     public string? Status { get; set; } // enum?
-    public double Price { get; set; }
+    public double TotalPrice { get; set; }
     
     public required IEnumerable<Item> Orders { get; set; }
 
@@ -27,7 +27,7 @@ public class OrderDetailViewModel
             OrderDate = order.OrderDate,
             DeliveryDate = order.DeliveryDate,
             Status = order.Status,
-            Price = order.TotalAmount,
+            TotalPrice = order.TotalAmount,
             Orders = order.OrderEntries.Select(x => new Item
             {
                 Id = x.Id,

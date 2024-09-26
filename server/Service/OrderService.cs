@@ -35,7 +35,8 @@ public class OrderService(AppDbContext context) : IOrderService
 
                 if (entry.Quantity > product.Stock)
                     throw new InvalidOperationException($"Insufficient stock for {product.Name}. Requested: {entry.Quantity}, Available: {product.Stock}.");
-
+                
+                product.Stock -= entry.Quantity;
                 return product.Price * entry.Quantity;
             });
             
