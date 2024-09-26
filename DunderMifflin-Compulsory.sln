@@ -14,6 +14,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceTests", "server\test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiIntegrationTests", "server\tests\ApiIntegrationTests\ApiIntegrationTests.csproj", "{2B8D7155-13EE-4993-9FE0-FB7AC324D730}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharedTestDependencies", "server\tests\SharedTestDependencies\SharedTestDependencies.csproj", "{4D49D111-2005-4204-9304-6BAD7B5A3BFB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,5 +49,9 @@ Global
 		{2B8D7155-13EE-4993-9FE0-FB7AC324D730}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B8D7155-13EE-4993-9FE0-FB7AC324D730}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B8D7155-13EE-4993-9FE0-FB7AC324D730}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D49D111-2005-4204-9304-6BAD7B5A3BFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D49D111-2005-4204-9304-6BAD7B5A3BFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D49D111-2005-4204-9304-6BAD7B5A3BFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D49D111-2005-4204-9304-6BAD7B5A3BFB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
