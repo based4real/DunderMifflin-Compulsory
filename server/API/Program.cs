@@ -1,15 +1,22 @@
 using API.ExceptionHandler;
 using DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Service;
 using Service.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configuration
-builder.Services.AddDbContext<AppDbContext>(options =>
+builder.Services.AddOptions<AppOptions>()
+                .Bind(builder.Configuration.GetSection(nameof(AppOptions)))
+                .ValidateDataAnnotations()
+                .ValidateOnStart();
+
+builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("LocalDbConn"));
+    var appOptions = serviceProvider.GetRequiredService<IOptions<AppOptions>>().Value;
+    options.UseNpgsql(Environment.GetEnvironmentVariable("LocalDbConn") ?? appOptions.LocalDbConn);
 });
 
 builder.Services.AddScoped<ICustomerService, CustomerService>();
