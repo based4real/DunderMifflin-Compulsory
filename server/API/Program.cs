@@ -21,6 +21,7 @@ builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
 
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IPaperService, PaperService > ();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApiDocument(configure =>
