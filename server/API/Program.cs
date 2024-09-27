@@ -23,7 +23,12 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApiDocument();
+builder.Services.AddOpenApiDocument(configure =>
+{
+    configure.Title = "Dunder Mifflin API";
+    configure.Version = "v1";
+    configure.Description = "API for Dunder Mifflin paper shop";
+});
 
 builder.Services.AddProblemDetails(options =>
 options.CustomizeProblemDetails = ctx =>
@@ -37,7 +42,11 @@ var app = builder.Build();
 
 // Middleware
 app.UseOpenApi();
-app.UseSwaggerUi();
+app.UseSwaggerUi(settings =>
+{ 
+    settings.DocumentTitle = "Dunder Mifflin API";
+    settings.DocExpansion = "list";
+});
 app.UseStatusCodePages();
 app.UseExceptionHandler();
 
