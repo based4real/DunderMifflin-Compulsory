@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Service.Exceptions;
 using Service.Interfaces;
+using Service.Models;
 using Service.Models.Responses;
 
 namespace Service;
@@ -43,5 +44,42 @@ public class CustomerService(AppDbContext context) : ICustomerService
             throw new NotFoundException("No customers with order history found");
 
         return customers;
+    }
+
+    public async Task<CustomerOrderPagedViewModel> GetPagedOrdersForCustomer(int customerId, int pageNumber, int itemsPerPage)
+    {
+        var customer = await context.Customers
+            .Include(customer => customer.Orders)
+            .ThenInclude(order => order.OrderEntries)
+            .ThenInclude(entry => entry.Product)
+            .SingleOrDefaultAsync(customer => customer.Id == customerId);
+            
+        if (customer == null)
+            throw new NotFoundException($"Customer with id {customerId} not found");
+            
+        var pagedOrders = customer.Orders.OrderBy(order => order.Id)
+            .Skip((pageNumber - 1) * itemsPerPage)
+            .Take(itemsPerPage)
+            .Select(OrderDetailViewModel.FromEntity)
+            .ToList();
+            
+        return new CustomerOrderPagedViewModel
+        {
+            CustomerDetails = new CustomerOrderDetailViewModel
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Address = customer.Address,
+                Phone = customer.Phone,
+                Email = customer.Email,
+                Orders = pagedOrders
+            },
+            PagingInfo = new PagingInfo
+            {
+                TotalItems = customer.Orders.Count,
+                ItemsPerPage = itemsPerPage,
+                CurrentPage = pageNumber 
+            }
+        };
     }
 }
