@@ -41,11 +41,14 @@ builder.Services.AddExceptionHandler<ExceptionToProblemDetailsHandler>();
 var app = builder.Build();
 
 // Middleware
+app.UseStaticFiles();
+
 app.UseOpenApi();
 app.UseSwaggerUi(settings =>
 { 
     settings.DocumentTitle = "Dunder Mifflin API";
     settings.DocExpansion = "list";
+    settings.CustomStylesheetPath = "/swagger-ui/universal-dark.css";
 });
 app.UseStatusCodePages();
 app.UseExceptionHandler();
@@ -61,4 +64,4 @@ using (var scope = app.Services.CreateScope())
 
 app.Run();
 
-public partial class Program { }
+public partial class Program;
