@@ -18,7 +18,7 @@ public class PaperPropertyCreateModel
     {
         return new Property
         {
-            PropertyName = PaperName
+            PropertyName = name
         };
     }
 }
