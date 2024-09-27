@@ -82,4 +82,23 @@ public class CustomerService(AppDbContext context) : ICustomerService
             }
         };
     }
+
+    public async Task<OrderDetailViewModel> CustomerOrder(int customerId, int orderId)
+    {
+        var customer = await context.Customers
+            .Include(customer => customer.Orders)
+            .ThenInclude(order => order.OrderEntries)
+            .ThenInclude(entry => entry.Product)
+            .SingleOrDefaultAsync(customer => customer.Id == customerId);
+        
+        if (customer == null)
+            throw new NotFoundException($"Customer with id {customerId} not found");
+            
+        var order = customer.Orders.SingleOrDefault(order => order.Id == orderId);
+        
+        if (order == null)
+            throw new NotFoundException($"Order with id {orderId} for customer with id {customerId} not found");
+            
+        return OrderDetailViewModel.FromEntity(order);
+    }
 }
