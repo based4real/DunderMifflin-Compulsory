@@ -1,43 +1,27 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
-using DataAccess;
 using Microsoft.AspNetCore.Mvc.Testing;
-using PgCtx;
-using Service;
 using Service.Models.Requests;
 using Service.Models.Responses;
 using SharedTestDependencies;
-using Xunit.Abstractions;
 
 namespace ApiIntegrationTests;
 
-public class OrderTest : WebApplicationFactory<Program>
+public class OrderTest : IClassFixture<DatabaseFixture>, IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly PgCtxSetup<AppDbContext> _pgCtxSetup = new();
-    private readonly ITestOutputHelper _outputHelper;
+    private readonly DatabaseFixture _dbFixture;
+    private readonly WebApplicationFactory<Program> _webFixture;
     
-    public OrderTest(ITestOutputHelper outputHelper)
+    public OrderTest(DatabaseFixture dbFixture, WebApplicationFactory<Program> webFixture)
     {
-        _outputHelper = outputHelper;
-        Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.LocalDbConn)}", _pgCtxSetup._postgres.GetConnectionString());
+        _dbFixture = dbFixture;
+        _webFixture = webFixture;
     }
 
     [Fact]
     public async Task CreateOrderTest()
     {
-        var client = CreateClient();
-        var customer = TestObjects.Customer();
-        _pgCtxSetup.DbContextInstance.Customers.Add(customer);
-        _pgCtxSetup.DbContextInstance.SaveChanges();
-        
-        var paper = TestObjects.Paper();
-        _pgCtxSetup.DbContextInstance.Papers.Add(paper);
-        _pgCtxSetup.DbContextInstance.SaveChanges();
-        
-        var orderEntry = TestObjects.OrderEntry(paper);
-        var order = TestObjects.Order(customer, [orderEntry]);
-        _pgCtxSetup.DbContextInstance.Orders.Add(order);
-        _pgCtxSetup.DbContextInstance.SaveChanges();
+        var client = _webFixture.CreateClient();
         
         var createOrderModel = new OrderCreateModel
         {
