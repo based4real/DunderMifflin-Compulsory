@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using Service;
 using Service.Interfaces;
 using Service.Models.Responses;
 
@@ -41,5 +42,11 @@ public class CustomerController(ICustomerService service) : ControllerBase
     public async Task<ActionResult<CustomerDetailViewModel?>> Get([Range(1, int.MaxValue)] int id)
     {
         return Ok(await service.ById(id));
+    }
+    
+    [HttpGet("{id}/Orders")]
+    public async Task<ActionResult<CustomerOrderPagedViewModel>> GetCustomerWithOrders(int id, int page = 1, int pageSize = 10)
+    {
+        return Ok(await service.GetPagedOrdersForCustomer(id, page, pageSize));
     }
 }
