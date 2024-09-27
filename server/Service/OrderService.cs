@@ -10,7 +10,6 @@ namespace Service;
 public class OrderService(AppDbContext context) : IOrderService
 {
     // Kan blive delt ud i flere metoder senere
-    
     public async Task<OrderDetailViewModel> Create(OrderCreateModel order)
     {
         var newOrder = order.ToOrder();
@@ -43,7 +42,7 @@ public class OrderService(AppDbContext context) : IOrderService
             return product.Price * entry.Quantity;
         });
         
-        context.Orders.Add(newOrder);
+        await context.Orders.AddAsync(newOrder);
         try 
         { 
             await context.SaveChangesAsync();
