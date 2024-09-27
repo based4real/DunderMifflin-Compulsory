@@ -7,12 +7,12 @@ using SharedTestDependencies;
 
 namespace ApiIntegrationTests;
 
-public class OrderTest : IClassFixture<DatabaseFixture>, IClassFixture<WebApplicationFactory<Program>>
+public class OrderTests : IClassFixture<DatabaseFixture>, IClassFixture<WebApplicationFactory<Program>>
 {
     private readonly DatabaseFixture _dbFixture;
     private readonly WebApplicationFactory<Program> _webFixture;
     
-    public OrderTest(DatabaseFixture dbFixture, WebApplicationFactory<Program> webFixture)
+    public OrderTests(DatabaseFixture dbFixture, WebApplicationFactory<Program> webFixture)
     {
         _dbFixture = dbFixture;
         _webFixture = webFixture;
@@ -37,7 +37,7 @@ public class OrderTest : IClassFixture<DatabaseFixture>, IClassFixture<WebApplic
         };
         
         var response = await client.PostAsJsonAsync("api/order", createOrderModel);
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         
         var responseData = await response.Content.ReadFromJsonAsync<OrderDetailViewModel>();
         

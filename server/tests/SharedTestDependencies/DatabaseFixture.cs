@@ -35,4 +35,9 @@ public class DatabaseFixture : IDisposable
     {
         _pgCtxSetup.TearDown();
     }
+
+    public AppDbContext AppDbContext()
+    {
+        return _pgCtxSetup.DbContextInstance;
+    }
 }
