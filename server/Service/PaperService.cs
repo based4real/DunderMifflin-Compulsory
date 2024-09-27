@@ -1,5 +1,4 @@
 ﻿using DataAccess;
-using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
 using Service.Interfaces;
 using Service.Models.Requests;
@@ -13,9 +12,21 @@ public class PaperService(AppDbContext context) : IPaperService
     {
         var toProperty = property.ToProperty();
 
-        var exists = context.Properties.Where(p => p.PropertyName == toProperty.PropertyName).FirstOrDefaultAsync();
-        if (exists != null)
+        var exists = await context.Properties
+            .AnyAsync(p => p.PropertyName == toProperty.PropertyName);
+        
+        if (exists)
             throw new InvalidOperationException("The property already exists");
+
+        // Indsæt for det paperId
+        if (property.PapersId != null && property.PapersId.Count > 0)
+        {
+            var papers = await context.Papers.Where(p => property.PapersId.Contains(p.Id)).ToListAsync();
+            if (papers.Count != property.PapersId.Count)
+                throw new InvalidOperationException("One or more provided paper IDs does not exist.");
+
+            toProperty.Papers = papers;
+        }
         
         await context.Properties.AddAsync(toProperty);
 

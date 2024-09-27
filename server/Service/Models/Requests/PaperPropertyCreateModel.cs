@@ -10,13 +10,15 @@ public class PaperPropertyCreateModel
     [Required]
     [NotNull]
     [MinLength(2)]
-    public string? PaperName { get; set; }
+    public string? name { get; set; }
+    
+    public List<int>? PapersId { get; set; }
 
     public Property ToProperty()
     {
         return new Property
         {
-            PropertyName = PaperName,
+            PropertyName = PaperName
         };
     }
 }
