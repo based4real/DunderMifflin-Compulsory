@@ -20,6 +20,27 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
     }
 
     [Fact]
+    public async Task GetSingleCustomer()
+    {
+        var client = _webFixture.CreateClient();
+        var expectedCustomer = _dbFixture.AppDbContext().Customers.First();
+        Assert.NotNull(expectedCustomer);
+
+        var response = await client.GetAsync($"api/customer/{expectedCustomer.Id}");
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var responseData = await response.Content.ReadFromJsonAsync<CustomerDetailViewModel>();
+
+        Assert.NotNull(responseData);
+        
+        Assert.Equal(expectedCustomer.Id, responseData.Id);
+        Assert.Equal(expectedCustomer.Name, responseData.Name);
+        Assert.Equal(expectedCustomer.Email, responseData.Email);
+        Assert.Equal(expectedCustomer.Phone, responseData.Phone);
+        Assert.Equal(expectedCustomer.Address, responseData.Address);
+    }
+
+    [Fact]
     public async Task All()
     {
         var client = _webFixture.CreateClient();
