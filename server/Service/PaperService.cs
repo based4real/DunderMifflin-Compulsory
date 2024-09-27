@@ -11,5 +11,10 @@ public class PaperService(AppDbContext context) : IPaperService
     public async Task<PaperPropertyDetailViewModel> CreateProperty(PaperPropertyCreateModel property)
     {
         var toProperty = property.ToProperty();
+        
+        await context.Properties.AddAsync(toProperty);
+        await context.SaveChangesAsync();
+        
+        return PaperPropertyDetailViewModel.FromEntity(toProperty);
     }
 }
