@@ -68,7 +68,9 @@ public class PaperTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAppli
         Assert.NotNull(responseData.PaperPropertyDetails);
         Assert.NotEmpty(responseData.PaperPropertyDetails);
         
-        Assert.All(responseData.PaperPropertyDetails, paper =>
+        var sortedResponsePapers = responseData.PaperPropertyDetails.OrderBy(p => p.Id);
+        
+        Assert.All(sortedResponsePapers, paper =>
         {
             Assert.NotNull(paper);
 
