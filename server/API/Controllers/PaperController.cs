@@ -19,6 +19,7 @@ public class PaperController(IPaperService service) : ControllerBase
     [Consumes("application/json")]
     [Produces("application/json")]
     [ProducesResponseType(typeof(PaperPropertyDetailViewModel), StatusCodes.Status201Created)]
+    [Route("property")]
     public async Task<ActionResult<PaperPropertyDetailViewModel>> CreatePaperProperty([FromBody] PaperPropertyCreateModel property)
     {
         var createdProperty = await service.CreateProperty(property);
