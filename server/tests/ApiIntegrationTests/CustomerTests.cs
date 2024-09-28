@@ -44,22 +44,23 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
     public async Task All()
     {
         var client = _webFixture.CreateClient();
-        var exceptedCustomers = _dbFixture.AppDbContext()?.Customers?.ToList();
+        var expectedCustomers = _dbFixture.AppDbContext()?.Customers?.OrderBy(c => c.Id).ToList();
         
-        Assert.NotNull(exceptedCustomers);
-        Assert.True(exceptedCustomers.Count > 0, "No customers found in database");
+        Assert.NotNull(expectedCustomers);
+        Assert.True(expectedCustomers.Count > 0, "No customers found in database");
 
         var response = await client.GetAsync("api/customer?orders=false");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         
         var responseData = await response.Content.ReadFromJsonAsync<List<CustomerDetailViewModel>>();
+        var sortedResponseData = responseData?.OrderBy(c => c.Id).ToList();
+        
+        Assert.NotNull(sortedResponseData);
+        Assert.Equal(expectedCustomers.Count, sortedResponseData.Count);
 
-        Assert.NotNull(responseData);
-        Assert.Equal(exceptedCustomers.Count, responseData.Count);
-
-        Assert.All(responseData, expectedCustomer =>
+        Assert.All(sortedResponseData, expectedCustomer =>
         {
-            var actualCustomer = exceptedCustomers.Single(c => c.Id == expectedCustomer.Id);
+            var actualCustomer = expectedCustomers.Single(c => c.Id == expectedCustomer.Id);
             Assert.NotNull(actualCustomer);
         
             Assert.Equal(expectedCustomer.Id, actualCustomer.Id);
@@ -73,27 +74,29 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
     public async Task AllWithHistory()
     {
         var client = _webFixture.CreateClient();
-        var exceptedCustomers = _dbFixture.AppDbContext()
+        var expectedCustomers = _dbFixture.AppDbContext()
             ?.Customers
             .Include(c => c.Orders)
                 .ThenInclude(e => e.OrderEntries)
+            .OrderBy(c => c.Id)
             .ToList();
         
-        Assert.NotNull(exceptedCustomers);
-        Assert.True(exceptedCustomers.Count > 0, "No customers found in database");
+        Assert.NotNull(expectedCustomers);
+        Assert.True(expectedCustomers.Count > 0, "No customers found in database");
 
         var response = await client.GetAsync("api/customer?orders=true");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         
         var responseData = await response.Content.ReadFromJsonAsync<List<CustomerOrderDetailViewModel>>();
-
+        var sortedResponseData = responseData?.OrderBy(c => c.Id).ToList();
+        
         Assert.NotNull(responseData);
-        Assert.Equal(exceptedCustomers.Count, responseData.Count);
+        Assert.Equal(expectedCustomers.Count, responseData.Count);
 
-        Assert.All(responseData, expectedCustomer =>
+        Assert.All(sortedResponseData, expectedCustomer =>
         {
             // Tester selve customer data
-            var actualCustomer = exceptedCustomers.Single(c => c.Id == expectedCustomer.Id);
+            var actualCustomer = expectedCustomers.Single(c => c.Id == expectedCustomer.Id);
 
             Assert.Equal(expectedCustomer.Id, actualCustomer.Id);
             Assert.Equal(expectedCustomer.Name, actualCustomer.Name);
