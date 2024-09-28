@@ -19,7 +19,30 @@ public class PaperTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAppli
     }
     
     [Fact]
-    public async Task CreatePaperProperty()
+    public async Task CreatePaperProperty_WithoutPapers()
+    {
+        var client = _webFixture.CreateClient();
+        
+        var createPropertyModel = new PaperPropertyCreateModel
+        {
+            name = "A4"
+        };
+        
+        var response = await client.PostAsJsonAsync("api/paper/property", createPropertyModel);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        
+        var responseData = await response.Content.ReadFromJsonAsync<PaperPropertyDetailViewModel>();
+        
+        Assert.NotNull(responseData);
+        Assert.NotEqual(0, responseData.Id);
+        Assert.True(responseData.Name == createPropertyModel.name);
+
+        Assert.True(responseData.PaperPropertyDetails?.Count == 0);
+    }
+
+    
+    [Fact]
+    public async Task CreatePaperProperty_WithPapers()
     {
         var client = _webFixture.CreateClient();
         var paperDbList = _dbFixture.AppDbContext().Papers.Take(3).ToList();
