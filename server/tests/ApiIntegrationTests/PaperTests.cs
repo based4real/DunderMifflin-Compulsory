@@ -45,7 +45,7 @@ public class PaperTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAppli
     public async Task CreatePaperProperty_WithPapers()
     {
         var client = _webFixture.CreateClient();
-        var paperDbList = _dbFixture.AppDbContext().Papers.Take(3).ToList();
+        var paperDbList = _dbFixture.AppDbContext().Papers.OrderBy(p => p.Id).Take(3).ToList();
 
         Assert.NotNull(paperDbList);
         Assert.Equal(3, paperDbList.Count);
@@ -68,7 +68,7 @@ public class PaperTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAppli
         Assert.NotNull(responseData.PaperPropertyDetails);
         Assert.NotEmpty(responseData.PaperPropertyDetails);
         
-        var sortedResponsePapers = responseData.PaperPropertyDetails.OrderBy(p => p.Id);
+        var sortedResponsePapers = responseData.PaperPropertyDetails.OrderBy(p => p.Id).ToList();
         
         Assert.All(sortedResponsePapers, paper =>
         {
