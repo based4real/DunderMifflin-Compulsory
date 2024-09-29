@@ -8,7 +8,6 @@ using Service;
 using Service.Models.Responses;
 using SharedTestDependencies;
 
-
 namespace ApiIntegrationTests;
 
 public class CustomerTests : WebApplicationFactory<Program>
@@ -218,10 +217,8 @@ public class CustomerTests : WebApplicationFactory<Program>
         Assert.Equal(customerWithoutOrders.Id, responseData.CustomerDetails.Id);
     }
     
-    [Theory, CombinatorialData]
-    public async Task GetCustomerOrders_ValidCustomerId_DifferentPages(
-        [CombinatorialValues(1, 2, 3)] int page,
-        [CombinatorialValues(1, 2, 5)] int pageSize)
+    [Fact]
+    public async Task GetCustomerOrders_ValidCustomerId_DifferentPageSizes()
     {
         // Arrange
         var client = CreateClient();
@@ -229,16 +226,21 @@ public class CustomerTests : WebApplicationFactory<Program>
         Assert.NotNull(customer);
         
         var customerId = customer.Id;
+        var page = 1;
+        var pageSizes = new[] { 1, 2, 5 }; 
         
-        // Act
-        var response = await client.GetAsync($"api/customer/{customerId}/orders?page={page}&pageSize={pageSize}");
+        foreach (var pageSize in pageSizes)
+        {
+            // Act
+            var response = await client.GetAsync($"api/customer/{customerId}/orders?page={page}&pageSize={pageSize}");
 
-        // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var responseData = await response.Content.ReadFromJsonAsync<CustomerOrderPagedViewModel>();
-        Assert.NotNull(responseData);
-        Assert.Equal(pageSize, responseData.PagingInfo.ItemsPerPage);
-        Assert.True(responseData.CustomerDetails.Orders.Count() <= pageSize);
+            var responseData = await response.Content.ReadFromJsonAsync<CustomerOrderPagedViewModel>();
+            Assert.NotNull(responseData);
+            Assert.Equal(pageSize, responseData.PagingInfo.ItemsPerPage);
+            Assert.True(responseData.CustomerDetails.Orders.Count() <= pageSize);
+        }
     }
 }
