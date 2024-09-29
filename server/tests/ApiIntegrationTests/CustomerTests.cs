@@ -160,4 +160,18 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
         Assert.Equal(page, responseData.PagingInfo.CurrentPage);
         Assert.Equal(pageSize, responseData.PagingInfo.ItemsPerPage);
     }
+    
+    [Fact]
+    public async Task GetCustomerOrders_InvalidCustomerId_ReturnsNotFound()
+    {
+        // Arrange
+        var client = _webFixture.CreateClient();
+        var invalidCustomerId = int.MaxValue; // Antager at dette ID ikke eksisterer i DB
+        
+        // Act
+        var response = await client.GetAsync($"api/customer/{invalidCustomerId}/orders?page=1&pageSize=10");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
