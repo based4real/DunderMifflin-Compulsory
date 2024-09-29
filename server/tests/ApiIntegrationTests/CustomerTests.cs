@@ -303,4 +303,26 @@ public class CustomerTests : WebApplicationFactory<Program>
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+    
+    [Fact]
+    public async Task GetCustomerOrder_OrderDoesNotBelongToCustomer_ReturnsNotFound()
+    {
+        // Arrange
+        var client = CreateClient();
+        var customer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).OrderBy(c => c.Id).FirstOrDefault();
+        var anotherCustomer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).OrderBy(c => c.Id).LastOrDefault();
+        
+        Assert.NotNull(customer);
+        Assert.NotNull(anotherCustomer);
+        Assert.NotEqual(customer.Id, anotherCustomer.Id);
+
+        var anotherCustomerOrder = anotherCustomer.Orders.FirstOrDefault();
+        Assert.NotNull(anotherCustomerOrder);
+
+        // Act
+        var response = await client.GetAsync($"api/customer/{customer.Id}/orders/{anotherCustomerOrder.Id}");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
