@@ -154,7 +154,7 @@ public class CustomerTests : WebApplicationFactory<Program>
     }
     
     [Fact]
-    public async Task GetCustomerOrders_ValidCustomerId_ReturnsPagedOrders()
+    public async Task GetCustomerWithOrders_ValidCustomerId_ReturnsPagedOrders()
     {
         // Arrange
         var client = CreateClient();
@@ -182,7 +182,7 @@ public class CustomerTests : WebApplicationFactory<Program>
     }
     
     [Fact]
-    public async Task GetCustomerOrders_InvalidCustomerId_ReturnsNotFound()
+    public async Task GetCustomerWithOrders_InvalidCustomerId_ReturnsNotFound()
     {
         // Arrange
         var client = CreateClient();
@@ -196,7 +196,7 @@ public class CustomerTests : WebApplicationFactory<Program>
     }
     
     [Fact]
-    public async Task GetCustomerOrders_ValidCustomerId_NoOrders_ReturnsEmptyOrders()
+    public async Task GetCustomerWithOrders_ValidCustomerId_NoOrders_ReturnsEmptyOrders()
     {
         // Arrange
         var client = CreateClient();
@@ -218,7 +218,7 @@ public class CustomerTests : WebApplicationFactory<Program>
     }
     
     [Fact]
-    public async Task GetCustomerOrders_ValidCustomerId_DifferentPageSizes()
+    public async Task GetCustomerWithOrders_ValidCustomerId_DifferentPageSizes()
     {
         // Arrange
         var client = CreateClient();
@@ -242,5 +242,33 @@ public class CustomerTests : WebApplicationFactory<Program>
             Assert.Equal(pageSize, responseData.PagingInfo.ItemsPerPage);
             Assert.True(responseData.CustomerDetails.Orders.Count() <= pageSize);
         }
+    }
+    
+    [Fact]
+    public async Task GetCustomerOrder_ValidCustomerAndOrderId_ReturnsOrderDetails()
+    {
+        // Arrange
+        var client = CreateClient();
+        var customer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).ThenInclude(o => o.OrderEntries).FirstOrDefault();
+        
+        Assert.NotNull(customer);
+        var order = customer.Orders.FirstOrDefault();
+        Assert.NotNull(order);
+
+        // Act
+        var response = await client.GetAsync($"api/customer/{customer.Id}/orders/{order.Id}");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var responseData = await response.Content.ReadFromJsonAsync<OrderDetailViewModel>();
+        Assert.NotNull(responseData);
+        
+        Assert.Equal(order.Id, responseData.Id);
+        Assert.Equal(order.OrderDate, responseData.OrderDate);
+        Assert.Equal(order.Status, responseData.Status);
+        Assert.Equal(order.DeliveryDate, responseData.DeliveryDate);
+        Assert.Equal(order.TotalAmount, responseData.TotalPrice);
+        Assert.Equal(order.OrderEntries.Count(), responseData.Entry.Count());
     }
 }
