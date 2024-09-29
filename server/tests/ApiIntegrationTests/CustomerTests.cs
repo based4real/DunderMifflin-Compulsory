@@ -8,6 +8,7 @@ using Service;
 using Service.Models.Responses;
 using SharedTestDependencies;
 
+
 namespace ApiIntegrationTests;
 
 public class CustomerTests : WebApplicationFactory<Program>
@@ -215,5 +216,29 @@ public class CustomerTests : WebApplicationFactory<Program>
         Assert.NotNull(responseData);
         Assert.Empty(responseData.CustomerDetails.Orders);
         Assert.Equal(customerWithoutOrders.Id, responseData.CustomerDetails.Id);
+    }
+    
+    [Theory, CombinatorialData]
+    public async Task GetCustomerOrders_ValidCustomerId_DifferentPages(
+        [CombinatorialValues(1, 2, 3)] int page,
+        [CombinatorialValues(1, 2, 5)] int pageSize)
+    {
+        // Arrange
+        var client = CreateClient();
+        var customer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).FirstOrDefault();
+        Assert.NotNull(customer);
+        
+        var customerId = customer.Id;
+        
+        // Act
+        var response = await client.GetAsync($"api/customer/{customerId}/orders?page={page}&pageSize={pageSize}");
+
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var responseData = await response.Content.ReadFromJsonAsync<CustomerOrderPagedViewModel>();
+        Assert.NotNull(responseData);
+        Assert.Equal(pageSize, responseData.PagingInfo.ItemsPerPage);
+        Assert.True(responseData.CustomerDetails.Orders.Count() <= pageSize);
     }
 }
