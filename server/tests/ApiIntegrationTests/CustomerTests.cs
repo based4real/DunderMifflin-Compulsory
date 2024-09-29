@@ -271,4 +271,20 @@ public class CustomerTests : WebApplicationFactory<Program>
         Assert.Equal(order.TotalAmount, responseData.TotalPrice);
         Assert.Equal(order.OrderEntries.Count, responseData.Entry.Count());
     }
+    
+    [Fact]
+    public async Task GetCustomerOrder_InvalidCustomerId_ReturnsNotFound()
+    {
+        // Arrange
+        var client = CreateClient();
+        var invalidCustomerId = int.MaxValue; // Antager at dette ID ikke eksisterer i DB
+        var validOrder = _pgCtxSetup.DbContextInstance.Orders.FirstOrDefault();
+        Assert.NotNull(validOrder);
+
+        // Act
+        var response = await client.GetAsync($"api/customer/{invalidCustomerId}/orders/{validOrder.Id}");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
