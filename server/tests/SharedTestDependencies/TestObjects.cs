@@ -26,7 +26,7 @@ public static class TestObjects
     public static Paper Paper(bool discontinued = false)
     {
         return new Faker<Paper>()
-            .RuleFor(p => p.Name, f => f.Commerce.ProductName())
+            .RuleFor(p => p.Name, f => $"{f.Commerce.ProductName()}_{Guid.NewGuid()}")
             .RuleFor(p => p.Discontinued, discontinued)
             .RuleFor(p => p.Stock, f => f.Random.Int(0, 100))
             .RuleFor(p => p.Price, f => (double)f.Finance.Amount(1, 500))
@@ -35,12 +35,13 @@ public static class TestObjects
 
     public static List<Paper> Papers(int count, List<Property> allProperties)
     {
+        var faker = new Faker();
         var papers = new List<Paper>();
         for (int i = 0; i < count; i++)
         {
             var paper = Paper();
             
-            int propertyCount = new Random().Next(1, 4); // Tildel 1 til 3 random properties til hvet paper
+            int propertyCount = faker.Random.Int(0, allProperties.Count - 1);
             paper.Properties = allProperties.OrderBy(x => Guid.NewGuid()).Take(propertyCount).ToList();
             
             foreach (var property in paper.Properties)

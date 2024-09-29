@@ -9,4 +9,8 @@ public interface ICustomerService
     public Task<CustomerDetailViewModel?> ById(int id);
     
     public Task<List<CustomerOrderDetailViewModel>> AllWithOrderHistory();
+    
+    public Task<CustomerOrderPagedViewModel> GetPagedOrdersForCustomer(int customerId, int pageNumber, int itemsPerPage);
+    
+    public Task<OrderDetailViewModel> CustomerOrder(int customerId, int orderId);
 }

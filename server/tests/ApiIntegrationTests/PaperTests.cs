@@ -1,27 +1,30 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using DataAccess;
 using Microsoft.AspNetCore.Mvc.Testing;
+using PgCtx;
+using Service;
 using Service.Models.Requests;
 using Service.Models.Responses;
 using SharedTestDependencies;
 
 namespace ApiIntegrationTests;
 
-public class PaperTests : IClassFixture<DatabaseFixture>, IClassFixture<WebApplicationFactory<Program>>
+public class PaperTests : WebApplicationFactory<Program>
 {
-    private readonly DatabaseFixture _dbFixture;
-    private readonly WebApplicationFactory<Program> _webFixture;
+    private readonly PgCtxSetup<AppDbContext> _pgCtxSetup = new();
 
-    public PaperTests(DatabaseFixture dbFixture, WebApplicationFactory<Program> webFixture)
+    public PaperTests()
     {
-        _dbFixture = dbFixture;
-        _webFixture = webFixture;
+        Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.LocalDbConn)}", _pgCtxSetup._postgres.GetConnectionString());
+        
+        SeedDatabase();
     }
     
     [Fact]
     public async Task CreatePaperProperty_WithoutPapers()
     {
-        var client = _webFixture.CreateClient();
+        var client = CreateClient();
         
         var createPropertyModel = new PaperPropertyCreateModel
         {
@@ -40,12 +43,28 @@ public class PaperTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAppli
         Assert.True(responseData.PaperPropertyDetails?.Count == 0);
     }
 
+    private void SeedDatabase()
+    {
+        var customers = TestObjects.Customers(4);
+        _pgCtxSetup.DbContextInstance.Customers.AddRange(customers);
+        
+        var properties = TestObjects.Properties(4); 
+        _pgCtxSetup.DbContextInstance.Properties.AddRange(properties);
+        
+        var papers = TestObjects.Papers(4, properties); 
+        _pgCtxSetup.DbContextInstance.Papers.AddRange(papers);
+        
+        var orders = TestObjects.Orders(customers, papers);
+        _pgCtxSetup.DbContextInstance.Orders.AddRange(orders);
+
+        _pgCtxSetup.DbContextInstance.SaveChanges();
+    }
     
     [Fact]
     public async Task CreatePaperProperty_WithPapers()
     {
-        var client = _webFixture.CreateClient();
-        var paperDbList = _dbFixture.AppDbContext().Papers.OrderBy(p => p.Id).Take(3).ToList();
+        var client = CreateClient();
+        var paperDbList = _pgCtxSetup.DbContextInstance.Papers.OrderBy(p => p.Id).Take(3).ToList();
 
         Assert.NotNull(paperDbList);
         Assert.Equal(3, paperDbList.Count);

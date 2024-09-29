@@ -1,29 +1,48 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
-using DataAccess.Models;
+using DataAccess;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using PgCtx;
+using Service;
 using Service.Models.Responses;
 using SharedTestDependencies;
 
 namespace ApiIntegrationTests;
 
-public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebApplicationFactory<Program>>
+public class CustomerTests : WebApplicationFactory<Program>
 {
-    private readonly DatabaseFixture _dbFixture;
-    private readonly WebApplicationFactory<Program> _webFixture;
+    private readonly PgCtxSetup<AppDbContext> _pgCtxSetup = new();
     
-    public CustomerTests(DatabaseFixture dbFixture, WebApplicationFactory<Program> webFixture)
+    public CustomerTests()
     {
-        _dbFixture = dbFixture;
-        _webFixture = webFixture;
+        Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.LocalDbConn)}", _pgCtxSetup._postgres.GetConnectionString());
+        
+        SeedDatabase();
+    }
+    
+    private void SeedDatabase()
+    {
+        var customers = TestObjects.Customers(4);
+        _pgCtxSetup.DbContextInstance.Customers.AddRange(customers);
+        
+        var properties = TestObjects.Properties(4); 
+        _pgCtxSetup.DbContextInstance.Properties.AddRange(properties);
+        
+        var papers = TestObjects.Papers(4, properties); 
+        _pgCtxSetup.DbContextInstance.Papers.AddRange(papers);
+        
+        var orders = TestObjects.Orders(customers, papers);
+        _pgCtxSetup.DbContextInstance.Orders.AddRange(orders);
+
+        _pgCtxSetup.DbContextInstance.SaveChanges();
     }
 
     [Fact]
     public async Task GetSingleCustomer()
     {
-        var client = _webFixture.CreateClient();
-        var expectedCustomer = _dbFixture.AppDbContext().Customers.First();
+        var client = CreateClient();
+        var expectedCustomer = _pgCtxSetup.DbContextInstance.Customers.First();
         Assert.NotNull(expectedCustomer);
 
         var response = await client.GetAsync($"api/customer/{expectedCustomer.Id}");
@@ -43,8 +62,8 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
     [Fact]
     public async Task All()
     {
-        var client = _webFixture.CreateClient();
-        var expectedCustomers = _dbFixture.AppDbContext()?.Customers?.OrderBy(c => c.Id).ToList();
+        var client = CreateClient();
+        var expectedCustomers = _pgCtxSetup.DbContextInstance?.Customers?.OrderBy(c => c.Id).ToList();
         
         Assert.NotNull(expectedCustomers);
         Assert.True(expectedCustomers.Count > 0, "No customers found in database");
@@ -73,11 +92,11 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
     [Fact]
     public async Task AllWithHistory()
     {
-        var client = _webFixture.CreateClient();
-        var expectedCustomers = _dbFixture.AppDbContext()
+        var client = CreateClient();
+        var expectedCustomers = _pgCtxSetup.DbContextInstance
             ?.Customers
             .Include(c => c.Orders)
-                .ThenInclude(e => e.OrderEntries)
+            .ThenInclude(e => e.OrderEntries)
             .OrderBy(c => c.Id)
             .ToList();
         
@@ -132,5 +151,178 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
                 });
             });
         });
+    }
+    
+    [Fact]
+    public async Task GetCustomerWithOrders_ValidCustomerId_ReturnsPagedOrders()
+    {
+        // Arrange
+        var client = CreateClient();
+        var customer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).FirstOrDefault();
+        
+        Assert.NotNull(customer);
+        
+        var customerId = customer.Id;
+        var page = 1;
+        var pageSize = 2;
+
+        // Act
+        var response = await client.GetAsync($"api/customer/{customerId}/orders?page={page}&pageSize={pageSize}");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        
+        var responseData = await response.Content.ReadFromJsonAsync<CustomerOrderPagedViewModel>();
+        Assert.NotNull(responseData);
+
+        Assert.Equal(customerId, responseData.CustomerDetails.Id);
+        Assert.Equal(customer.Orders.Count(), responseData.PagingInfo.TotalItems);
+        Assert.Equal(page, responseData.PagingInfo.CurrentPage);
+        Assert.Equal(pageSize, responseData.PagingInfo.ItemsPerPage);
+    }
+    
+    [Fact]
+    public async Task GetCustomerWithOrders_InvalidCustomerId_ReturnsNotFound()
+    {
+        // Arrange
+        var client = CreateClient();
+        var invalidCustomerId = int.MaxValue; // Antager at dette ID ikke eksisterer i DB
+        
+        // Act
+        var response = await client.GetAsync($"api/customer/{invalidCustomerId}/orders?page=1&pageSize=10");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+    
+    [Fact]
+    public async Task GetCustomerWithOrders_ValidCustomerId_NoOrders_ReturnsEmptyOrders()
+    {
+        // Arrange
+        var client = CreateClient();
+        
+        var customerWithoutOrders = TestObjects.Customer();
+        _pgCtxSetup.DbContextInstance.Customers.Add(customerWithoutOrders);
+        _pgCtxSetup.DbContextInstance.SaveChanges();
+        
+        // Act
+        var response = await client.GetAsync($"api/customer/{customerWithoutOrders.Id}/orders?page=1&pageSize=10");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        
+        var responseData = await response.Content.ReadFromJsonAsync<CustomerOrderPagedViewModel>();
+        Assert.NotNull(responseData);
+        Assert.Empty(responseData.CustomerDetails.Orders);
+        Assert.Equal(customerWithoutOrders.Id, responseData.CustomerDetails.Id);
+    }
+    
+    [Fact]
+    public async Task GetCustomerWithOrders_ValidCustomerId_DifferentPageSizes()
+    {
+        // Arrange
+        var client = CreateClient();
+        var customer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).FirstOrDefault();
+        Assert.NotNull(customer);
+        
+        var customerId = customer.Id;
+        var page = 1;
+        var pageSizes = new[] { 1, 2, 5 }; 
+        
+        foreach (var pageSize in pageSizes)
+        {
+            // Act
+            var response = await client.GetAsync($"api/customer/{customerId}/orders?page={page}&pageSize={pageSize}");
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            var responseData = await response.Content.ReadFromJsonAsync<CustomerOrderPagedViewModel>();
+            Assert.NotNull(responseData);
+            Assert.Equal(pageSize, responseData.PagingInfo.ItemsPerPage);
+            Assert.True(responseData.CustomerDetails.Orders.Count() <= pageSize);
+        }
+    }
+    
+    [Fact]
+    public async Task GetCustomerOrder_ValidCustomerAndOrderId_ReturnsOrderDetails()
+    {
+        // Arrange
+        var client = CreateClient();
+        var customer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).ThenInclude(o => o.OrderEntries).FirstOrDefault();
+        
+        Assert.NotNull(customer);
+        var order = customer.Orders.FirstOrDefault();
+        Assert.NotNull(order);
+
+        // Act
+        var response = await client.GetAsync($"api/customer/{customer.Id}/orders/{order.Id}");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var responseData = await response.Content.ReadFromJsonAsync<OrderDetailViewModel>();
+        Assert.NotNull(responseData);
+        
+        Assert.Equal(order.Id, responseData.Id);
+        Assert.Equal(order.OrderDate, responseData.OrderDate);
+        Assert.Equal(order.Status, responseData.Status);
+        Assert.Equal(order.DeliveryDate, responseData.DeliveryDate);
+        Assert.Equal(order.TotalAmount, responseData.TotalPrice);
+        Assert.Equal(order.OrderEntries.Count, responseData.Entry.Count());
+    }
+    
+    [Fact]
+    public async Task GetCustomerOrder_InvalidCustomerId_ReturnsNotFound()
+    {
+        // Arrange
+        var client = CreateClient();
+        var invalidCustomerId = int.MaxValue; // Antager at dette ID ikke eksisterer i DB
+        var validOrder = _pgCtxSetup.DbContextInstance.Orders.FirstOrDefault();
+        Assert.NotNull(validOrder);
+
+        // Act
+        var response = await client.GetAsync($"api/customer/{invalidCustomerId}/orders/{validOrder.Id}");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+    
+    [Fact]
+    public async Task GetCustomerOrder_InvalidOrderId_ReturnsNotFound()
+    {
+        // Arrange
+        var client = CreateClient();
+        var customer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).FirstOrDefault();
+        Assert.NotNull(customer);
+        var invalidOrderId = int.MaxValue; // Antager at dette ID ikke eksisterer i DB
+
+        // Act
+        var response = await client.GetAsync($"api/customer/{customer.Id}/orders/{invalidOrderId}");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+    
+    [Fact]
+    public async Task GetCustomerOrder_OrderDoesNotBelongToCustomer_ReturnsNotFound()
+    {
+        // Arrange
+        var client = CreateClient();
+        var customer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).OrderBy(c => c.Id).FirstOrDefault();
+        var anotherCustomer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).OrderBy(c => c.Id).LastOrDefault();
+        
+        Assert.NotNull(customer);
+        Assert.NotNull(anotherCustomer);
+        Assert.NotEqual(customer.Id, anotherCustomer.Id);
+
+        var anotherCustomerOrder = anotherCustomer.Orders.FirstOrDefault();
+        Assert.NotNull(anotherCustomerOrder);
+
+        // Act
+        var response = await client.GetAsync($"api/customer/{customer.Id}/orders/{anotherCustomerOrder.Id}");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
 }
