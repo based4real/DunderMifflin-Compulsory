@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
-using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Service.Models.Responses;
@@ -132,5 +131,33 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
                 });
             });
         });
+    }
+    
+    [Fact]
+    public async Task GetCustomerOrders_ValidCustomerId_ReturnsPagedOrders()
+    {
+        // Arrange
+        var client = _webFixture.CreateClient();
+        var customer = _dbFixture.AppDbContext().Customers.Include(c => c.Orders).FirstOrDefault();
+        
+        Assert.NotNull(customer);
+        
+        var customerId = customer.Id;
+        var page = 1;
+        var pageSize = 2;
+
+        // Act
+        var response = await client.GetAsync($"api/customer/{customerId}/orders?page={page}&pageSize={pageSize}");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        
+        var responseData = await response.Content.ReadFromJsonAsync<CustomerOrderPagedViewModel>();
+        Assert.NotNull(responseData);
+
+        Assert.Equal(customerId, responseData.CustomerDetails.Id);
+        Assert.Equal(customer.Orders.Count(), responseData.PagingInfo.TotalItems);
+        Assert.Equal(page, responseData.PagingInfo.CurrentPage);
+        Assert.Equal(pageSize, responseData.PagingInfo.ItemsPerPage);
     }
 }
