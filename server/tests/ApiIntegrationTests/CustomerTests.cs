@@ -287,4 +287,20 @@ public class CustomerTests : WebApplicationFactory<Program>
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+    
+    [Fact]
+    public async Task GetCustomerOrder_InvalidOrderId_ReturnsNotFound()
+    {
+        // Arrange
+        var client = CreateClient();
+        var customer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).FirstOrDefault();
+        Assert.NotNull(customer);
+        var invalidOrderId = int.MaxValue; // Antager at dette ID ikke eksisterer i DB
+
+        // Act
+        var response = await client.GetAsync($"api/customer/{customer.Id}/orders/{invalidOrderId}");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
 }
