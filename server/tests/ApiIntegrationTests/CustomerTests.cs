@@ -269,6 +269,6 @@ public class CustomerTests : WebApplicationFactory<Program>
         Assert.Equal(order.Status, responseData.Status);
         Assert.Equal(order.DeliveryDate, responseData.DeliveryDate);
         Assert.Equal(order.TotalAmount, responseData.TotalPrice);
-        Assert.Equal(order.OrderEntries.Count(), responseData.Entry.Count());
+        Assert.Equal(order.OrderEntries.Count, responseData.Entry.Count());
     }
 }
