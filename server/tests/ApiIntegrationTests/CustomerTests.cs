@@ -1,28 +1,48 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using DataAccess;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using PgCtx;
+using Service;
 using Service.Models.Responses;
 using SharedTestDependencies;
 
 namespace ApiIntegrationTests;
 
-public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebApplicationFactory<Program>>
+public class CustomerTests : WebApplicationFactory<Program>
 {
-    private readonly DatabaseFixture _dbFixture;
-    private readonly WebApplicationFactory<Program> _webFixture;
+    private readonly PgCtxSetup<AppDbContext> _pgCtxSetup = new();
     
-    public CustomerTests(DatabaseFixture dbFixture, WebApplicationFactory<Program> webFixture)
+    public CustomerTests()
     {
-        _dbFixture = dbFixture;
-        _webFixture = webFixture;
+        Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.LocalDbConn)}", _pgCtxSetup._postgres.GetConnectionString());
+        
+        SeedDatabase();
+    }
+    
+    private void SeedDatabase()
+    {
+        var customers = TestObjects.Customers(4);
+        _pgCtxSetup.DbContextInstance.Customers.AddRange(customers);
+        
+        var properties = TestObjects.Properties(4); 
+        _pgCtxSetup.DbContextInstance.Properties.AddRange(properties);
+        
+        var papers = TestObjects.Papers(4, properties); 
+        _pgCtxSetup.DbContextInstance.Papers.AddRange(papers);
+        
+        var orders = TestObjects.Orders(customers, papers);
+        _pgCtxSetup.DbContextInstance.Orders.AddRange(orders);
+
+        _pgCtxSetup.DbContextInstance.SaveChanges();
     }
 
     [Fact]
     public async Task GetSingleCustomer()
     {
-        var client = _webFixture.CreateClient();
-        var expectedCustomer = _dbFixture.AppDbContext().Customers.First();
+        var client = CreateClient();
+        var expectedCustomer = _pgCtxSetup.DbContextInstance.Customers.First();
         Assert.NotNull(expectedCustomer);
 
         var response = await client.GetAsync($"api/customer/{expectedCustomer.Id}");
@@ -42,8 +62,8 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
     [Fact]
     public async Task All()
     {
-        var client = _webFixture.CreateClient();
-        var expectedCustomers = _dbFixture.AppDbContext()?.Customers?.OrderBy(c => c.Id).ToList();
+        var client = CreateClient();
+        var expectedCustomers = _pgCtxSetup.DbContextInstance?.Customers?.OrderBy(c => c.Id).ToList();
         
         Assert.NotNull(expectedCustomers);
         Assert.True(expectedCustomers.Count > 0, "No customers found in database");
@@ -72,11 +92,11 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
     [Fact]
     public async Task AllWithHistory()
     {
-        var client = _webFixture.CreateClient();
-        var expectedCustomers = _dbFixture.AppDbContext()
+        var client = CreateClient();
+        var expectedCustomers = _pgCtxSetup.DbContextInstance
             ?.Customers
             .Include(c => c.Orders)
-                .ThenInclude(e => e.OrderEntries)
+            .ThenInclude(e => e.OrderEntries)
             .OrderBy(c => c.Id)
             .ToList();
         
@@ -137,8 +157,8 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
     public async Task GetCustomerOrders_ValidCustomerId_ReturnsPagedOrders()
     {
         // Arrange
-        var client = _webFixture.CreateClient();
-        var customer = _dbFixture.AppDbContext().Customers.Include(c => c.Orders).FirstOrDefault();
+        var client = CreateClient();
+        var customer = _pgCtxSetup.DbContextInstance.Customers.Include(c => c.Orders).FirstOrDefault();
         
         Assert.NotNull(customer);
         
@@ -165,7 +185,7 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
     public async Task GetCustomerOrders_InvalidCustomerId_ReturnsNotFound()
     {
         // Arrange
-        var client = _webFixture.CreateClient();
+        var client = CreateClient();
         var invalidCustomerId = int.MaxValue; // Antager at dette ID ikke eksisterer i DB
         
         // Act
@@ -173,5 +193,27 @@ public class CustomerTests : IClassFixture<DatabaseFixture>, IClassFixture<WebAp
         
         // Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+    
+    [Fact]
+    public async Task GetCustomerOrders_ValidCustomerId_NoOrders_ReturnsEmptyOrders()
+    {
+        // Arrange
+        var client = CreateClient();
+        
+        var customerWithoutOrders = TestObjects.Customer();
+        _pgCtxSetup.DbContextInstance.Customers.Add(customerWithoutOrders);
+        _pgCtxSetup.DbContextInstance.SaveChanges();
+        
+        // Act
+        var response = await client.GetAsync($"api/customer/{customerWithoutOrders.Id}/orders?page=1&pageSize=10");
+        
+        // Assert
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        
+        var responseData = await response.Content.ReadFromJsonAsync<CustomerOrderPagedViewModel>();
+        Assert.NotNull(responseData);
+        Assert.Empty(responseData.CustomerDetails.Orders);
+        Assert.Equal(customerWithoutOrders.Id, responseData.CustomerDetails.Id);
     }
 }

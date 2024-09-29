@@ -1,27 +1,47 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using DataAccess;
 using Microsoft.AspNetCore.Mvc.Testing;
+using PgCtx;
+using Service;
 using Service.Models.Requests;
 using Service.Models.Responses;
 using SharedTestDependencies;
 
 namespace ApiIntegrationTests;
 
-public class OrderTests : IClassFixture<DatabaseFixture>, IClassFixture<WebApplicationFactory<Program>>
+public class OrderTests : WebApplicationFactory<Program>
 {
-    private readonly DatabaseFixture _dbFixture;
-    private readonly WebApplicationFactory<Program> _webFixture;
-    
-    public OrderTests(DatabaseFixture dbFixture, WebApplicationFactory<Program> webFixture)
+    private readonly PgCtxSetup<AppDbContext> _pgCtxSetup = new();
+
+    public OrderTests()
     {
-        _dbFixture = dbFixture;
-        _webFixture = webFixture;
+        Environment.SetEnvironmentVariable($"{nameof(AppOptions)}:{nameof(AppOptions.LocalDbConn)}", _pgCtxSetup._postgres.GetConnectionString());
+        
+        SeedDatabase();
+    }
+
+    private void SeedDatabase()
+    {
+        var customers = TestObjects.Customers(4);
+        _pgCtxSetup.DbContextInstance.Customers.AddRange(customers);
+        
+        var properties = TestObjects.Properties(4); 
+        _pgCtxSetup.DbContextInstance.Properties.AddRange(properties);
+        
+        var papers = TestObjects.Papers(4, properties); 
+        _pgCtxSetup.DbContextInstance.Papers.AddRange(papers);
+        
+        var orders = TestObjects.Orders(customers, papers);
+        _pgCtxSetup.DbContextInstance.Orders.AddRange(orders);
+
+        _pgCtxSetup.DbContextInstance.SaveChanges();
     }
 
     [Fact]
     public async Task CreateOrderTest()
     {
-        var client = _webFixture.CreateClient();
+        var client = CreateClient();
         
         var createOrderModel = new OrderCreateModel
         {
