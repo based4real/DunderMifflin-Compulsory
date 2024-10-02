@@ -46,10 +46,27 @@ public class PaperController(IPaperService service) : ControllerBase
     
     /// <response code="404">If the paper is not found</response>
     [HttpPatch("{id}/discontinue")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Discontinue(int id)
     {
         await service.Discontinue(id);
+        return NoContent();
+    }
+    
+    /// <summary>
+    /// Restocks a paper product by adding a specified amount to the current stock.
+    /// </summary>
+    /// <param name="id">The ID of the paper to restock.</param>
+    /// <param name="amount">The amount to add to the current stock. Must be a positive amount.</param>
+    /// <response code="204">If the restocking is successful.</response>
+    /// <response code="404">If the paper is not found.</response>
+    [HttpPatch("{id}/restock")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Restock(int id, [FromQuery, Range(1, int.MaxValue)] int amount)
+    {
+        await service.Restock(id, amount);
         return NoContent();
     }
 }

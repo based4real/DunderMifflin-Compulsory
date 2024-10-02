@@ -101,9 +101,7 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
         var paper = await context.Papers.FindAsync(id);
         if (paper == null)
         {
-            Console.WriteLine($"LOL - Paper with ID {id} not found.");
             throw new NotFoundException($"Paper with ID {id} not found.");
-            Console.WriteLine($"LOL 2 - Paper with ID {id} not found.");
         }
         paper.Discontinued = true;
         
@@ -113,8 +111,28 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
         }
         catch (DbUpdateException ex)
         {
-            Console.WriteLine($"LOL - An error occurred while updating the status for paper with ID {id}. Exception: {ex.Message}");
             throw new DbUpdateException($"An error occurred while trying to discontinue paper with ID {id}.", ex);
+        }
+    }
+
+    public async Task Restock(int id, int amount)
+    {
+        var paper = await context.Papers.FindAsync(id);
+        if (paper == null)
+            throw new NotFoundException($"Paper with ID {id} not found.");
+        
+        // Sørg for at stock ikke går over int.MaxValue (undgå overflow)
+        if (paper.Stock > int.MaxValue - amount) paper.Stock = int.MaxValue;
+        else                                     paper.Stock += amount;
+        
+        
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException($"An error occurred while trying to restock paper with ID {id}.", ex);
         }
     }
 }
