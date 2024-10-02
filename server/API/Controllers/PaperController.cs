@@ -11,20 +11,13 @@ namespace API.Controllers;
 [Route("api/[controller]")]
 public class PaperController(IPaperService service) : ControllerBase
 {
-    /// <summary>
-    /// Creates a new paper product.
-    /// </summary>
-    /// <param name="paper">The paper details</param>
-    /// <returns>The created paper.</returns>
-    /// <response code="201">Paper created successfully.</response>
     [HttpPost]
     [Consumes("application/json")]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(PaperDetailViewModel), StatusCodes.Status201Created)]
-    public async Task<ActionResult<PaperDetailViewModel>> CreatePaper([FromBody] PaperCreateModel paper)
+    [ProducesResponseType(typeof(List<PaperDetailViewModel>), StatusCodes.Status201Created)]
+    public async Task<ActionResult<List<PaperDetailViewModel>>> CreatePapers([FromBody] List<PaperCreateModel> papers)
     {
-        var createdPaper = await service.CreatePaper(paper);
-        return CreatedAtAction(nameof(CreatePaper), new { id = createdPaper.Id }, createdPaper);
+        return Created("", await service.CreatePapers(papers));
     }
 
     /// <summary>

@@ -63,25 +63,15 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
         };
     }
 
-    public async Task<PaperDetailViewModel> CreatePaper(PaperCreateModel paper)
+    public async Task<List<PaperDetailViewModel>> CreatePapers(List<PaperCreateModel> papers)
     {
-        var newPaper = paper.ToPaper();
+        ValidateNoDuplicateNames(papers);
+        await ValidateNoExistingNamesInDb(papers);
+
+        var newPapers = papers.Select(p => p.ToPaper()).ToList();
+        await AssignPropertiesToPapers(papers, newPapers);
         
-        var exists = await context.Papers.AnyAsync(p => p.Name.ToLower() == newPaper.Name.ToLower());
-        if (exists)
-            throw new InvalidOperationException($"A paper product with the name '{newPaper.Name}' already exists.");
-        
-        
-        if (paper.PropertyIds != null && paper.PropertyIds.Count != 0)
-        {
-            var uniquePropertyIds = paper.PropertyIds.Distinct().ToList();
-            
-            var properties = await context.Properties.Where(property => uniquePropertyIds.Contains(property.Id)).ToListAsync();
-            
-            newPaper.Properties = properties;
-        }
-        
-        await context.Papers.AddAsync(newPaper);
+        await context.Papers.AddRangeAsync(newPapers);
         
         try
         {
@@ -89,12 +79,67 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
         }
         catch (DbUpdateException ex)
         {
-            throw new DbUpdateException("An error occurred while trying to insert the new paper into the database.", ex);
+            throw new DbUpdateException("An error occurred while trying to insert the new papers into the database.", ex);
         }
         
-        return PaperDetailViewModel.FromEntity(newPaper);
+        return newPapers.Select(PaperDetailViewModel.FromEntity).ToList();
     }
 
+    private static void ValidateNoDuplicateNames(List<PaperCreateModel> papers)
+    {
+        var duplicateNames = papers
+            .GroupBy(p => p.Name.ToLower())
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        if (duplicateNames.Count == 0) return;
+        
+        string errorMessage = duplicateNames.Count == 1
+            ? $"The provided paper name '{duplicateNames[0]}' is duplicated. Please provide each paper name only once."
+            : $"The following paper names are duplicated: {string.Join(", ", duplicateNames)}. Please provide each paper name only once.";
+        throw new ArgumentException(errorMessage);
+    }
+
+    private async Task ValidateNoExistingNamesInDb(List<PaperCreateModel> papers)
+    {
+        var paperNames = papers.Select(p => p.Name.ToLower()).ToList();
+        var existingNames = await context.Papers
+            .Where(p => paperNames.Contains(p.Name.ToLower()))
+            .Select(p => p.Name.ToLower())
+            .ToListAsync();
+
+        if (existingNames.Count != 0)
+        {
+            string errorMessage = existingNames.Count == 1
+                ? $"A paper product with the name '{existingNames[0]}' already exists."
+                : $"The following paper names already exist: {string.Join(", ", existingNames)}.";
+            throw new InvalidOperationException(errorMessage);
+        }
+    }
+
+    private async Task AssignPropertiesToPapers(List<PaperCreateModel> papers, List<Paper> newPapers)
+    {
+        var allPropertyIds = papers
+            .SelectMany(p => p.PropertyIds ?? Enumerable.Empty<int>())
+            .Distinct()
+            .ToList();
+
+        var properties = await context.Properties
+            .Where(property => allPropertyIds.Contains(property.Id))
+            .ToListAsync();
+
+        foreach (var paperModel in papers)
+        {
+            var newPaper = newPapers.First(p => p.Name == paperModel.Name);
+            
+            if (paperModel.PropertyIds == null || paperModel.PropertyIds.Count == 0) continue;
+                
+            var propertyIds = paperModel.PropertyIds.Distinct().ToList();
+            newPaper.Properties = properties.Where(property => propertyIds.Contains(property.Id)).ToList();
+        }
+    }
+    
     public async Task<PaperPropertyDetailViewModel> CreateProperty(PaperPropertyCreateModel property)
     {
         var toProperty = property.ToProperty();
@@ -133,32 +178,12 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
     {
         var uniqueIds = ids.Distinct().ToList(); // Fjern alle duplikat id
         var validIds = uniqueIds.Where(id => id > 0).ToList(); // Fjern alle ID'er der er 0 eller negativ
-
-        // Fejl hvis alle ID'er er 0 eller negative
-        if (validIds.Count == 0)
-        {
-            string errorMessage = uniqueIds.Count == 1
-                ? $"The provided ID {uniqueIds[0]} is invalid. All IDs must be positive numbers greater than 0."
-                : $"All provided IDs are invalid. The following IDs are not valid: {string.Join(", ", uniqueIds)}. All IDs must be positive numbers greater than 0.";
-
-            throw new ArgumentException(errorMessage);
-        }
+        
+        ValidateIds(validIds, uniqueIds);
         
         var papers = await context.Papers.Where(paper => validIds.Contains(paper.Id)).ToListAsync();
+        var foundIds = ValidateFoundPapers(papers, validIds);
 
-        var foundIds = papers.Select(p => p.Id).ToList();
-        var invalidIds = validIds.Except(foundIds).ToList();
-        
-        // Fejl hvis ingen ID'er er i DB
-        if (foundIds.Count == 0)
-        {
-            string errorMessage = invalidIds.Count == 1
-                ? $"The provided ID {invalidIds[0]} is invalid."
-                : $"No valid paper IDs were provided. The following IDs are invalid: {string.Join(", ", invalidIds)}";
-
-            throw new NotFoundException(errorMessage);
-        }
-        
         papers.ForEach(paper => paper.Discontinued = true);
         
         try
@@ -175,27 +200,35 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
         }
     }
 
-    public async Task Restock(int id, int amount)
+    private static List<int> ValidateFoundPapers(List<Paper> papers, List<int> validIds)
     {
-        var paper = await context.Papers.FindAsync(id);
-        if (paper == null)
-            throw new NotFoundException($"Paper with ID {id} not found.");
+        var foundIds = papers.Select(p => p.Id).ToList();
+        var invalidIds = validIds.Except(foundIds).ToList();
         
-        // Sørg for at stock ikke går over int.MaxValue (undgå overflow)
-        if (paper.Stock > int.MaxValue - amount) paper.Stock = int.MaxValue;
-        else                                     paper.Stock += amount;
-        
-        
-        try
+        if (foundIds.Count == 0)
         {
-            await context.SaveChangesAsync();
+            string errorMessage = invalidIds.Count == 1
+                ? $"The provided ID {invalidIds[0]} is invalid."
+                : $"No valid paper IDs were provided. The following IDs are invalid: {string.Join(", ", invalidIds)}";
+
+            throw new NotFoundException(errorMessage);
         }
-        catch (DbUpdateException ex)
+
+        return foundIds;
+    }
+
+    private static void ValidateIds(List<int> validIds, List<int> uniqueIds)
+    {
+        if (validIds.Count == 0)
         {
-            throw new DbUpdateException($"An error occurred while trying to restock paper with ID {id}.", ex);
+            string errorMessage = uniqueIds.Count == 1
+                ? $"The provided ID {uniqueIds[0]} is invalid. All IDs must be positive numbers greater than 0."
+                : $"All provided IDs are invalid. The following IDs are not valid: {string.Join(", ", uniqueIds)}. All IDs must be positive numbers greater than 0.";
+
+            throw new ArgumentException(errorMessage);
         }
     }
-    
+
     public async Task Restock(List<PaperRestockUpdateModel> restockModels)
     {
         ValidateNoDuplicateIds(restockModels);
