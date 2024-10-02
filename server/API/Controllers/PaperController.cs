@@ -14,11 +14,11 @@ public class PaperController(IPaperService service) : ControllerBase
     /// <summary>
     /// Creates a list of new paper products.
     /// </summary>
-    /// <param name="papers">A list of paper products to create, each containing details like name, stock, price, and properties.</param>
+    /// <param name="papers">A list of paper products to create, including details like name, stock, price, and properties.</param>
     /// <returns>A list of created paper products with their details.</returns>
     /// <response code="201">Paper products created successfully.</response>
-    /// <response code="400">One or more provided paper names are duplicated.</response>
-    /// <response code="409">One or more paper products with the same name already exist.</response>
+    /// <response code="400">Provided paper names contain duplicates.</response>
+    /// <response code="409">Paper products with the same name already exist.</response>
     [HttpPost]
     [Consumes("application/json")]
     [Produces("application/json")]
@@ -50,15 +50,15 @@ public class PaperController(IPaperService service) : ControllerBase
     /// <summary>
     /// Retrieves a paginated list of paper products.
     /// </summary>
-    /// <param name="page">The page number to retrieve. Must be greater than 0. Default is 1.</param>
-    /// <param name="pageSize">The number of items per page. Must be between 1 and 1000. Default is 10.</param>
-    /// <param name="search">A string to search for in the paper names. If provided, results are filtered to contain this string (case-insensitive).</param>
-    /// <param name="discontinued">Whether to filter papers by their discontinued status. Null returns both discontinued and non-discontinued papers.</param>
-    /// <param name="orderBy">The field by which to order the results. Defaults to <see cref="PaperOrderBy.Id"/>.</param>
-    /// <param name="sortBy">The sorting direction: ascending or descending. Defaults to <see cref="SortOrder.Asc"/>.</param>
-    /// <param name="filter">Comma-separated list of property IDs to filter papers by. Only papers with these properties will be included.</param>
-    /// <param name="filterType">Specifies whether all (<see cref="FilterType.And"/>) or any (<see cref="FilterType.Or"/>) of the provided properties should be matched. Defaults to <see cref="FilterType.Or"/>.</param>
-    /// <returns>A paginated view model containing the list of paper products that match the provided criteria.</returns>
+    /// <param name="page">Page number to retrieve, must be greater than 0. Default is 1.</param>
+    /// <param name="pageSize">Number of items per page, between 1 and 1000. Default is 10.</param>
+    /// <param name="search">Optional search term for paper names (case-insensitive).</param>
+    /// <param name="discontinued">Filter by discontinued status. Null returns all papers.</param>
+    /// <param name="orderBy">Field to order results by, default is <see cref="PaperOrderBy.Id"/>.</param>
+    /// <param name="sortBy">Sorting direction: ascending or descending. Default is <see cref="SortOrder.Asc"/>.</param>
+    /// <param name="filter">Comma-separated property IDs to filter by.</param>
+    /// <param name="filterType">Specifies whether all (<see cref="FilterType.And"/>) or any (<see cref="FilterType.Or"/>) properties should be matched. Default is <see cref="FilterType.Or"/>.</param>
+    /// <returns>Paginated list of paper products matching the criteria.</returns>
     /// <response code="200">Returns the paginated list of paper products.</response>
     [HttpGet]
     [Produces("application/json")]
@@ -79,12 +79,12 @@ public class PaperController(IPaperService service) : ControllerBase
     }
     
     /// <summary>
-    /// Marks a paper product as discontinued by setting its discontinued status to true.
+    /// Sets a paper product as discontinued.
     /// </summary>
-    /// <param name="id">The ID of the paper to discontinue. Must be a positive integer greater than 0.</param>
+    /// <param name="id">The ID of the paper to discontinue, must be a positive integer.</param>
     /// <response code="204">The paper was successfully discontinued.</response>
-    /// <response code="400">If the provided ID is invalid (e.g., less than or equal to 0).</response>
-    /// <response code="404">If the paper with the provided ID is not found.</response>
+    /// <response code="400">Invalid paper ID provided.</response>
+    /// <response code="404">Paper with the provided ID not found.</response>
     [HttpPatch("{id}/discontinue")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -96,18 +96,17 @@ public class PaperController(IPaperService service) : ControllerBase
     }
     
     /// <summary>
-    /// Marks multiple paper products as discontinued by setting their discontinued status to true.
+    /// Sets multiple paper products as discontinued.
     /// </summary>
-    /// <param name="ids">A list of IDs of the papers to discontinue. Must be a list of positive integers greater than 0, with at least one element.</param>
-    /// <response code="204">The specified paper products were successfully discontinued.</response>
-    /// <response code="400">If the provided list of IDs is empty, contains only invalid IDs (e.g., negative numbers or zeros), or contains duplicate IDs.</response>
-    /// <response code="404">If none of the provided IDs correspond to existing papers.</response>
+    /// <param name="ids">List of paper IDs to discontinue, must be positive integers with at least one element.</param>
+    /// <response code="204">Paper products were successfully discontinued.</response>
+    /// <response code="400">Invalid or empty list of IDs provided.</response>
+    /// <response code="404">None of the provided IDs match existing papers.</response>
     /// <remarks>
-    /// The following actions are performed by this endpoint:
-    /// - Duplicate IDs in the request are automatically removed.
-    /// - Any IDs that are 0 or negative are removed.
-    /// - If no valid IDs are provided after filtering, an error is returned.
-    /// - If some valid IDs are found, those papers are discontinued, and any invalid IDs are disregarded.
+    /// - Duplicate IDs are removed.
+    /// - Negative or zero IDs are ignored.
+    /// - If no valid IDs remain after filtering, an error is returned.
+    /// - Valid IDs are processed, and invalid IDs are disregarded.
     /// </remarks>
     [HttpPatch("discontinue")]
     [Consumes("application/json")]
@@ -121,13 +120,13 @@ public class PaperController(IPaperService service) : ControllerBase
     }
     
     /// <summary>
-    /// Restocks a paper product by adding a specified amount to the current stock.
+    /// Restocks a paper product.
     /// </summary>
-    /// <param name="id">The ID of the paper to restock. Must be a positive integer greater than 0.</param>
-    /// <param name="amount">The amount to add to the current stock. Must be a positive number greater than 0.</param>
+    /// <param name="id">The ID of the paper to restock, must be a positive integer.</param>
+    /// <param name="amount">Amount to add to the current stock, must be greater than 0.</param>
     /// <response code="204">The paper was successfully restocked.</response>
-    /// <response code="400">If the provided ID or amount is invalid.</response>
-    /// <response code="404">If the paper with the provided ID is not found or if product was discontinued.</response>
+    /// <response code="400">Invalid ID or amount provided.</response>
+    /// <response code="404">Paper not found or discontinued.</response>
     [HttpPatch("{id}/restock")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -140,19 +139,17 @@ public class PaperController(IPaperService service) : ControllerBase
     }
     
     /// <summary>
-    /// Restocks multiple paper products by adding specified amounts to their current stock.
+    /// Restocks multiple paper products.
     /// </summary>
-    /// <param name="restockRequests">A list of paper restock requests, each containing a paper ID and the amount to add to its stock.</param>
-    /// <response code="204">The specified paper products were successfully restocked.</response>
-    /// <response code="400">If the provided list of IDs is empty, contains only invalid IDs (e.g., negative numbers or zeros), contains duplicate IDs, or if any amounts are invalid.</response>
-    /// <response code="404">If none of the provided IDs correspond to existing papers, or if they correspond to discontinued products.</response>
+    /// <param name="restockRequests">List of paper restock requests, each containing a paper ID and an amount to add to stock.</param>
+    /// <response code="204">Paper products were successfully restocked.</response>
+    /// <response code="400">Invalid list of requests or amounts provided.</response>
+    /// <response code="404">None of the provided IDs match existing papers or refer to discontinued products.</response>
     /// <remarks>
-    /// The following actions are performed by this endpoint:
-    /// - Duplicate paper IDs in the request are not allowed. If duplicates are found, an error is returned.
-    /// - Any IDs that are 0 or negative are considered invalid and will result in a `400 Bad Request`.
-    /// - If no valid IDs are provided after filtering, a `404 Not Found` error is returned.
-    /// - Papers that are discontinued cannot be restocked, and an error will be returned if they are included in the request.
-    /// - If a mix of valid and invalid/discontinued IDs is provided, only valid papers will be restocked, and the rest will be ignored.
+    /// - Duplicate paper IDs are not allowed.
+    /// - Negative or zero IDs and amounts are invalid.
+    /// - Papers that are discontinued cannot be restocked.
+    /// - Valid requests are processed, invalid ones are disregarded.
     /// </remarks>
     [HttpPatch("restock")]
     [Consumes("application/json")]

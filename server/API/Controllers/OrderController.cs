@@ -30,11 +30,11 @@ public class OrderController(IOrderService service) : ControllerBase
     /// <summary>
     /// Updates the status of a specific order.
     /// </summary>
-    /// <param name="id">he ID of the order to update. Must be a positive integer greater than 0.</param>
-    /// <param name="status">The new status to set for the order. Must be a valid `OrderStatus` value.</param>
+    /// <param name="id">The ID of the order to update, must be a positive integer.</param>
+    /// <param name="status">The new status to set, must be a valid `OrderStatus` value.</param>
     /// <response code="204">The order status was successfully updated.</response>
-    /// <response code="400">If the provided ID or status is invalid.</response>
-    /// <response code="404">If the order with the provided ID is not found.</response>
+    /// <response code="400">Invalid order ID or status value.</response>
+    /// <response code="404">The order with the provided ID was not found.</response>
     [HttpPatch("{id}/status")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -48,17 +48,16 @@ public class OrderController(IOrderService service) : ControllerBase
     /// <summary>
     /// Updates the status of multiple orders.
     /// </summary>
-    /// <param name="ids">A list of order IDs to update, each must be a positive integer greater than 0.</param>
-    /// <param name="status">The new status to set for the orders. Must be a valid `OrderStatus` value.</param>
+    /// <param name="ids">A list of order IDs to update, must be positive integers.</param>
+    /// <param name="status">The new status to set, must be a valid `OrderStatus` value.</param>
     /// <response code="204">The order statuses were successfully updated.</response>
-    /// <response code="400">If the provided list of IDs is empty, contains only invalid IDs, or if the status value is invalid.</response>
-    /// <response code="404">If none of the provided IDs correspond to existing orders.</response>
+    /// <response code="400">Invalid list of IDs or status value.</response>
+    /// <response code="404">None of the provided IDs match existing orders.</response>
     /// <remarks>
-    /// The following actions are performed by this endpoint:
-    /// - Duplicate order IDs in the request are removed.
-    /// - IDs that are 0 or negative are considered invalid and will result in a `400 Bad Request`.
-    /// - If no valid IDs are provided after filtering, a `404 Not Found` error is returned.
-    /// - If a mix of valid and invalid IDs is provided, only valid orders will have their status updated.
+    /// - Duplicate IDs are removed.
+    /// - Negative or zero IDs are rejected with `400 Bad Request`.
+    /// - If no valid IDs remain, `404 Not Found` is returned.
+    /// - If you provide a mix of valid and invalid IDs, the status will be updated only for the valid orders.
     /// </remarks>
     [HttpPatch("status")]
     [Consumes("application/json")]
