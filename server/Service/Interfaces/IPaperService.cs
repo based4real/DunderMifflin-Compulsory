@@ -14,5 +14,5 @@ public interface IPaperService
     public Task<PaperDetailViewModel> CreatePaper(PaperCreateModel paper);
     public Task<PaperPropertyDetailViewModel> CreateProperty(PaperPropertyCreateModel property);
     public Task Discontinue(List<int> ids);
-    public Task Restock(int id, int amount);
+    public Task Restock(List<PaperRestockUpdateModel> restockModels);
 }

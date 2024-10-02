@@ -1,4 +1,5 @@
 ﻿using DataAccess;
+using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
 using Service.Exceptions;
 using Service.Interfaces;
@@ -192,6 +193,91 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
         catch (DbUpdateException ex)
         {
             throw new DbUpdateException($"An error occurred while trying to restock paper with ID {id}.", ex);
+        }
+    }
+    
+    public async Task Restock(List<PaperRestockUpdateModel> restockModels)
+    {
+        ValidateNoDuplicateIds(restockModels);
+
+        var paperIds = restockModels.Select(request => request.PaperId).ToList();
+        var papers = await context.Papers.Where(paper => paperIds.Contains(paper.Id)).ToListAsync();
+
+        var foundIds = papers.Select(p => p.Id).ToList();
+        var invalidIds = paperIds.Except(foundIds).ToList();
+        var papersToRestock = papers.Where(p => !p.Discontinued).ToList();
+        var discontinuedIds = foundIds.Except(papersToRestock.Select(p => p.Id)).ToList();
+
+        ValidateRestockIds(invalidIds, discontinuedIds, foundIds);
+        
+        ApplyRestock(papersToRestock, restockModels);
+        
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            string idsMessage = foundIds.Count == 1 
+                ? $"the paper product with ID {foundIds[0]}" 
+                : $"the paper products with IDs {string.Join(", ", foundIds)}";
+
+            throw new DbUpdateException($"An error occurred while trying to restock {idsMessage}.", ex);
+        }
+    }
+    
+    private static void ValidateNoDuplicateIds(List<PaperRestockUpdateModel> restockModels)
+    {
+        var duplicateIds = restockModels
+            .GroupBy(request => request.PaperId)
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .ToList();
+
+        if (duplicateIds.Count == 0) return;
+        
+        string errorMessage = duplicateIds.Count == 1
+            ? $"The provided ID {duplicateIds[0]} is duplicated. Please provide each paper ID only once."
+            : $"The following IDs are duplicated: {string.Join(", ", duplicateIds)}. Please provide each paper ID only once.";
+
+        throw new ArgumentException(errorMessage);
+    }
+    
+    private static void ValidateRestockIds(List<int> invalidIds, List<int> discontinuedIds, List<int> foundIds)
+    {
+        if (foundIds.Count > 0 && foundIds.Any(id => !discontinuedIds.Contains(id)))
+            return;
+        
+        var messages = new List<string>();
+
+        if (invalidIds.Count != 0)
+        {
+            string invalidMessage = invalidIds.Count == 1
+                ? $"The provided ID {invalidIds[0]} is invalid."
+                : $"The following IDs are invalid: {string.Join(", ", invalidIds)}.";
+            messages.Add(invalidMessage);
+        }
+
+        if (discontinuedIds.Count != 0)
+        {
+            string discontinuedMessage = discontinuedIds.Count == 1
+                ? $"The provided ID {discontinuedIds[0]} corresponds to a discontinued paper and cannot be restocked."
+                : $"The following IDs correspond to discontinued papers and cannot be restocked: {string.Join(", ", discontinuedIds)}.";
+            messages.Add(discontinuedMessage);
+        }
+
+        throw new NotFoundException(string.Join(" ", messages));
+    }
+    
+    private static void ApplyRestock(List<Paper> papersToRestock, List<PaperRestockUpdateModel> restockModels)
+    {
+        foreach (var paper in papersToRestock)
+        {
+            var restockModel = restockModels.First(r => r.PaperId == paper.Id);
+
+            // Sørg for at stock ikke går over int.MaxValue (undgå overflow)
+            if (paper.Stock > int.MaxValue - restockModel.Amount) paper.Stock = int.MaxValue;
+            else                                                  paper.Stock += restockModel.Amount;
         }
     }
 }

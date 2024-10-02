@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using API.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
 using Service.Models.Requests;
@@ -91,9 +90,20 @@ public class PaperController(IPaperService service) : ControllerBase
     [HttpPatch("{id}/restock")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Restock(int id, [FromQuery, Range(1, int.MaxValue)] int amount)
+    public async Task<IActionResult> Restock([Range(1, int.MaxValue)] int id,
+                                             [FromQuery, Required, Range(1, int.MaxValue)] int amount)
     {
-        await service.Restock(id, amount);
+        await service.Restock([new PaperRestockUpdateModel { PaperId = id, Amount = amount }]);
+        return NoContent();
+    }
+    
+    [HttpPatch("restock")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RestockBulk([FromBody, MinLength(1)] List<PaperRestockUpdateModel> restockRequests)
+    {
+        await service.Restock(restockRequests);
         return NoContent();
     }
 }
