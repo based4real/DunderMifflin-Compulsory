@@ -98,7 +98,7 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
         string errorMessage = duplicateNames.Count == 1
             ? $"The provided paper name '{duplicateNames[0]}' is duplicated. Please provide each paper name only once."
             : $"The following paper names are duplicated: {string.Join(", ", duplicateNames)}. Please provide each paper name only once.";
-        throw new ArgumentException(errorMessage);
+        throw new BadRequestException(errorMessage);
     }
 
     private async Task ValidateNoExistingNamesInDb(List<PaperCreateModel> papers)
@@ -114,7 +114,7 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
             string errorMessage = existingNames.Count == 1
                 ? $"A paper product with the name '{existingNames[0]}' already exists."
                 : $"The following paper names already exist: {string.Join(", ", existingNames)}.";
-            throw new InvalidOperationException(errorMessage);
+            throw new ConflictException(errorMessage);
         }
     }
 
@@ -208,7 +208,7 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
             ? $"The provided ID {uniqueIds[0]} is invalid. All IDs must be positive numbers greater than 0."
             : $"All provided IDs are invalid. The following IDs are not valid: {string.Join(", ", uniqueIds)}. All IDs must be positive numbers greater than 0.";
 
-        throw new ArgumentException(errorMessage);
+        throw new BadRequestException(errorMessage);
     }
 
     private static List<int> ValidateFoundPapers(List<Paper> papers, List<int> validIds)
@@ -269,7 +269,7 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
             ? $"The provided ID {duplicateIds[0]} is duplicated. Please provide each paper ID only once."
             : $"The following IDs are duplicated: {string.Join(", ", duplicateIds)}. Please provide each paper ID only once.";
 
-        throw new ArgumentException(errorMessage);
+        throw new BadRequestException(errorMessage);
     }
     
     private static void ValidateRestockIds(List<int> invalidIds, List<int> discontinuedIds, List<int> foundIds)

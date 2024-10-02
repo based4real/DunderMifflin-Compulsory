@@ -11,7 +11,9 @@ public class ExceptionToProblemDetailsHandler(IProblemDetailsService problemDeta
     {
         httpContext.Response.StatusCode = exception switch
         {
+            BadRequestException => StatusCodes.Status400BadRequest,
             NotFoundException => StatusCodes.Status404NotFound,
+            ConflictException => StatusCodes.Status409Conflict,
             _ => StatusCodes.Status500InternalServerError
         };
 

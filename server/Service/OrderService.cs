@@ -93,7 +93,7 @@ public class OrderService(AppDbContext context) : IOrderService
             ? $"The provided ID {ids[0]} is invalid. All IDs must be positive numbers greater than 0."
             : $"All provided IDs are invalid. The following IDs are not valid: {string.Join(", ", ids)}. All IDs must be positive numbers greater than 0.";
 
-        throw new ArgumentException(errorMessage);
+        throw new BadRequestException(errorMessage);
     }
     
     private static void ValidateFoundOrders(List<int> foundIds, List<int> invalidIds)
@@ -114,6 +114,6 @@ public class OrderService(AppDbContext context) : IOrderService
         if (Enum.TryParse<OrderStatus>(status, true, out _)) return status;
         
         var validStatuses = string.Join(", ", Enum.GetNames(typeof(OrderStatus)));
-        throw new ArgumentException($"Invalid order status value: {status}. Valid values are: {validStatuses}");
+        throw new BadRequestException($"Invalid order status value: {status}. Valid values are: {validStatuses}");
     }
 }

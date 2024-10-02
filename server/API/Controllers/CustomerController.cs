@@ -15,6 +15,7 @@ public class CustomerController(ICustomerService service) : ControllerBase
     /// <param name="orders">Include order history if true.</param>
     /// <returns>A list of customer details.</returns>
     [HttpGet]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(List<CustomerDetailViewModel>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<CustomerDetailViewModel>>> All([FromQuery] bool orders = false)
     {
@@ -36,6 +37,7 @@ public class CustomerController(ICustomerService service) : ControllerBase
     /// <response code="200">Returns the customer if found.</response>
     /// <response code="404">If the customer is not found.</response>
     [HttpGet("{id}")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(CustomerDetailViewModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CustomerDetailViewModel?>> Get([Range(1, int.MaxValue)] int id)
@@ -53,6 +55,7 @@ public class CustomerController(ICustomerService service) : ControllerBase
     /// <response code="200">Returns the customer's order history with pagination</response>
     /// <response code="404">If the customer is not found</response>
     [HttpGet("{id}/Orders")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(CustomerOrderPagedViewModel), StatusCodes.Status200OK)] 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CustomerOrderPagedViewModel>> GetCustomerWithOrders([Range(1, int.MaxValue)] int id,
@@ -71,6 +74,7 @@ public class CustomerController(ICustomerService service) : ControllerBase
     /// <response code="200">Returns the order if found</response>
     /// <response code="404">If the customer or order is not found</response>
     [HttpGet("{customerId}/Orders/{orderId}")]
+    [Produces("application/json")]
     [ProducesResponseType(typeof(OrderDetailViewModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<OrderDetailViewModel>> GetCustomerOrder([Range(1, int.MaxValue)] int customerId,
