@@ -8,9 +8,11 @@
     
     <ItemGroup>
         <ProjectReference Include="..\DataAccess\DataAccess.csproj" />
+        <ProjectReference Include="..\SharedDependencies\SharedDependencies.csproj" />
     </ItemGroup>
     
     <ItemGroup>
+      <Folder Include="Constants\" />
       <Folder Include="Enums\" />
     </ItemGroup>
 </Project>

@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Service.Enums;
+using Service;
 using Service.Interfaces;
 using Service.Models.Requests;
 using Service.Models.Responses;
+using SharedDependencies;
+using SharedDependencies.Enums;
 
 namespace API.Controllers;
 
@@ -34,10 +36,13 @@ public class PaperController(IPaperService service) : ControllerBase
         [FromQuery, Range(1, 1000)] int pageSize = 10,
         [FromQuery] string? search = null,
         [FromQuery] bool? discontinued = null,
-        [FromQuery] string? orderBy = null,
-        [FromQuery] string? sortBy = null)
+        [FromQuery] PaperOrderBy orderBy = PaperOrderBy.Id,
+        [FromQuery] SortOrder sortBy = SortOrder.Asc,
+        [FromQuery] string? filter = null,
+        [FromQuery] FilterType filterType = FilterType.Or)
     {
-        var sortOrder = sortBy ?? "asc";
-        return Ok(await service.AllPaged(page, pageSize, search, discontinued, orderBy, sortOrder));
+        var propertyIds = filter?.Split(',').Select(int.Parse).ToList();
+        
+        return Ok(await service.AllPaged(page, pageSize, search, discontinued, orderBy, sortBy, propertyIds, filterType));
     }
 }

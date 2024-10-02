@@ -9,7 +9,7 @@ public class PagingInfo
    public int CurrentPage { get; set; }
 
    [JsonPropertyName("totalPages")] // Gør sådan at totalPages kommer med i JSON respons
-   public int TotalPagesForSerialization => TotalPages;
+   public int TotalPages => TotalPagesCalculation;
    
-   private int TotalPages => (int) Math.Ceiling((decimal) TotalItems / ItemsPerPage);
+   private int TotalPagesCalculation => (int) Math.Ceiling((decimal) TotalItems / ItemsPerPage);
 }

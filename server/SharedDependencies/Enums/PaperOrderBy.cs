@@ -1,4 +1,4 @@
-namespace Service.Enums;
+namespace SharedDependencies.Enums;
 
 public enum PaperOrderBy
 {
