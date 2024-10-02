@@ -2,31 +2,46 @@
 using Microsoft.EntityFrameworkCore;
 using Service.Exceptions;
 using Service.Interfaces;
+using Service.Models;
 using Service.Models.Requests;
 using Service.Models.Responses;
 
 namespace Service;
 
-public class PaperService(AppDbContext context) : IPaperService
+public class PaperService(AppDbContext context, IPaperRepository repository) : IPaperService
 {
+    
     public async Task<List<PaperDetailViewModel>> All(bool? discontinued)
     {
-        // Lav til en IQueryable så vi kan tilføje "filteret"
-        var query = context.Papers
-            .Include(property => property.Properties)
-            .AsQueryable();
-
-        if (discontinued.HasValue)
-            query = query.Where(paper => paper.Discontinued == discontinued.Value);
-        
-        var result = await query
-            .Select(paper => PaperDetailViewModel.FromEntity(paper))
-            .ToListAsync();
-
+        var result = await repository.GetFilteredPapers(discontinued).Select(p => PaperDetailViewModel.FromEntity(p)).ToListAsync();
         if (!result.Any())
             throw new NotFoundException("No papers found");
 
         return result;
+    }
+    
+    public async Task<PaperPagedViewModel> AllPaged(bool? discontinued, int pageNumber, int itemsPerPage)
+    {
+        var query = repository.GetFilteredPapers(discontinued);
+        var totalItems = await query.CountAsync();
+
+        var pagedPapers = await query
+            .OrderBy(paper => paper.Id)
+            .Skip((pageNumber - 1) * itemsPerPage)
+            .Take(itemsPerPage)
+            .Select(paper => PaperDetailViewModel.FromEntity(paper))
+            .ToListAsync();
+
+        return new PaperPagedViewModel
+        {
+            Papers = pagedPapers,
+            PagingInfo = new PagingInfo
+            {
+                TotalItems = totalItems,
+                ItemsPerPage = itemsPerPage,
+                CurrentPage = pageNumber
+            }
+        };
     }
     
     public async Task<PaperPropertyDetailViewModel> CreateProperty(PaperPropertyCreateModel property)

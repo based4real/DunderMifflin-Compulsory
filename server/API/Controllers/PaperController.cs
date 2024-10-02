@@ -28,10 +28,10 @@ public class PaperController(IPaperService service) : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<PaperDetailViewModel>>> All([FromQuery] bool? discontinued,
+    public async Task<ActionResult<PaperPagedViewModel>> All([FromQuery] bool? discontinued,
         [FromQuery, Range(1, int.MaxValue)] int page = 1,
         [FromQuery, Range(1, 1000)] int pageSize = 10)
     {
-        return Ok(await service.All(discontinued));
+        return Ok(await service.AllPaged(discontinued, page, pageSize));
     }
 }

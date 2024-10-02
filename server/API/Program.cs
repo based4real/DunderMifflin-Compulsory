@@ -19,6 +19,8 @@ builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
     options.UseNpgsql(Environment.GetEnvironmentVariable("LocalDbConn") ?? appOptions.LocalDbConn);
 });
 
+builder.Services.AddScoped<IPaperRepository, PaperRepository>();
+
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaperService, PaperService > ();
