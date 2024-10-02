@@ -61,7 +61,39 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
             }
         };
     }
-    
+
+    public async Task<PaperDetailViewModel> CreatePaper(PaperCreateModel paper)
+    {
+        var newPaper = paper.ToPaper();
+        
+        var exists = await context.Papers.AnyAsync(p => p.Name.ToLower() == newPaper.Name.ToLower());
+        if (exists)
+            throw new InvalidOperationException($"A paper product with the name '{newPaper.Name}' already exists.");
+        
+        
+        if (paper.PropertyIds != null && paper.PropertyIds.Count != 0)
+        {
+            var uniquePropertyIds = paper.PropertyIds.Distinct().ToList();
+            
+            var properties = await context.Properties.Where(property => uniquePropertyIds.Contains(property.Id)).ToListAsync();
+            
+            newPaper.Properties = properties;
+        }
+        
+        await context.Papers.AddAsync(newPaper);
+        
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException("An error occurred while trying to insert the new paper into the database.", ex);
+        }
+        
+        return PaperDetailViewModel.FromEntity(newPaper);
+    }
+
     public async Task<PaperPropertyDetailViewModel> CreateProperty(PaperPropertyCreateModel property)
     {
         var toProperty = property.ToProperty();

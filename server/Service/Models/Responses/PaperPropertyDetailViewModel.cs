@@ -1,5 +1,5 @@
-﻿using System.Text.Json.Serialization;
-using DataAccess.Models;
+﻿using DataAccess.Models;
+using Newtonsoft.Json;
 
 namespace Service.Models.Responses;
 
@@ -8,7 +8,7 @@ public class PaperPropertyDetailViewModel
     public int Id { get; set; }
     public string? Name { get; set; }
     
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] // Ignorer denne hvis værdi er null
+    [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] // Ignorer denne hvis værdi er null
     public List<PaperDetailViewModel>? PaperPropertyDetails { get; set; }
 
     public static PaperPropertyDetailViewModel FromEntity(Property property)
