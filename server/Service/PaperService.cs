@@ -1,5 +1,6 @@
 ﻿using DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Service.Enums;
 using Service.Exceptions;
 using Service.Interfaces;
 using Service.Models;
@@ -11,6 +12,23 @@ namespace Service;
 public class PaperService(AppDbContext context, IPaperRepository repository) : IPaperService
 {
     
+    private PaperOrderBy ParseOrderBy(string orderBy)
+    {
+        switch (orderBy.ToLower())
+        {
+            case "id":
+                return PaperOrderBy.Id;
+            case "name":
+                return PaperOrderBy.Name;
+            case "price":
+                return PaperOrderBy.Price;
+            case "stock":
+                return PaperOrderBy.Stock;
+            default:
+                throw new ArgumentException($"Invalid order by value: {orderBy}");
+        }
+    }
+    
     public async Task<List<PaperDetailViewModel>> All(bool? discontinued)
     {
         var result = await repository.GetFilteredPapers(discontinued).Select(p => PaperDetailViewModel.FromEntity(p)).ToListAsync();
@@ -20,13 +38,17 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
         return result;
     }
     
-    public async Task<PaperPagedViewModel> AllPaged(bool? discontinued, int pageNumber, int itemsPerPage)
+    public async Task<PaperPagedViewModel> AllPaged(int pageNumber, int itemsPerPage, bool? discontinued, string? orderBy, String sortOrder)
     {
         var query = repository.GetFilteredPapers(discontinued);
-        var totalItems = await query.CountAsync();
+        var orderType = PaperOrderBy.Id;
+        if (orderBy != null)
+            orderType = ParseOrderBy(orderBy);
+        
+        var sortedPapers = repository.OrderBy(query, orderType, sortOrder);
+        var totalItems = await sortedPapers.CountAsync();
 
-        var pagedPapers = await query
-            .OrderBy(paper => paper.Id)
+        var pagedPapers = await sortedPapers
             .Skip((pageNumber - 1) * itemsPerPage)
             .Take(itemsPerPage)
             .Select(paper => PaperDetailViewModel.FromEntity(paper))
