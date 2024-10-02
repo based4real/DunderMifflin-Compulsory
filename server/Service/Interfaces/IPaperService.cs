@@ -12,4 +12,5 @@ public interface IPaperService
                                               PaperOrderBy orderBy = PaperOrderBy.Id, SortOrder sortOrder = SortOrder.Asc,
                                               List<int>? propertyIds = null, FilterType filterType = FilterType.Or);
     public Task<PaperPropertyDetailViewModel> CreateProperty(PaperPropertyCreateModel property);
+    public Task Discontinue(int id);
 }

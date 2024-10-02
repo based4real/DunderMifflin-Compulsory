@@ -1,10 +1,8 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
-using Service;
 using Service.Interfaces;
 using Service.Models.Requests;
 using Service.Models.Responses;
-using SharedDependencies;
 using SharedDependencies.Enums;
 
 namespace API.Controllers;
@@ -44,5 +42,14 @@ public class PaperController(IPaperService service) : ControllerBase
         var propertyIds = filter?.Split(',').Select(int.Parse).ToList();
         
         return Ok(await service.AllPaged(page, pageSize, search, discontinued, orderBy, sortBy, propertyIds, filterType));
+    }
+    
+    /// <response code="404">If the paper is not found</response>
+    [HttpPatch("{id}/discontinue")]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Discontinue(int id)
+    {
+        await service.Discontinue(id);
+        return NoContent();
     }
 }
