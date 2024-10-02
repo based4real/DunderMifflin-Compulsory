@@ -128,14 +128,37 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
         return PaperPropertyDetailViewModel.FromEntity(toProperty);
     }
 
-    public async Task Discontinue(int id)
+    public async Task Discontinue(List<int> ids)
     {
-        var paper = await context.Papers.FindAsync(id);
-        if (paper == null)
+        var uniqueIds = ids.Distinct().ToList(); // Fjern alle duplikat id
+        var validIds = uniqueIds.Where(id => id > 0).ToList(); // Fjern alle ID'er der er 0 eller negativ
+
+        // Fejl hvis alle ID'er er 0 eller negative
+        if (validIds.Count == 0)
         {
-            throw new NotFoundException($"Paper with ID {id} not found.");
+            string errorMessage = uniqueIds.Count == 1
+                ? $"The provided ID {uniqueIds[0]} is invalid. All IDs must be positive numbers greater than 0."
+                : $"All provided IDs are invalid. The following IDs are not valid: {string.Join(", ", uniqueIds)}. All IDs must be positive numbers greater than 0.";
+
+            throw new ArgumentException(errorMessage);
         }
-        paper.Discontinued = true;
+        
+        var papers = await context.Papers.Where(paper => validIds.Contains(paper.Id)).ToListAsync();
+
+        var foundIds = papers.Select(p => p.Id).ToList();
+        var invalidIds = validIds.Except(foundIds).ToList();
+        
+        // Fejl hvis ingen ID'er er i DB
+        if (foundIds.Count == 0)
+        {
+            string errorMessage = invalidIds.Count == 1
+                ? $"The provided ID {invalidIds[0]} is invalid."
+                : $"No valid paper IDs were provided. The following IDs are invalid: {string.Join(", ", invalidIds)}";
+
+            throw new NotFoundException(errorMessage);
+        }
+        
+        papers.ForEach(paper => paper.Discontinued = true);
         
         try
         {
@@ -143,7 +166,11 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
         }
         catch (DbUpdateException ex)
         {
-            throw new DbUpdateException($"An error occurred while trying to discontinue paper with ID {id}.", ex);
+            string idsMessage = foundIds.Count == 1 
+                ? $"the paper product with ID {foundIds[0]}" 
+                : $"the paper products with IDs {string.Join(", ", foundIds)}";
+
+            throw new DbUpdateException($"An error occurred while trying to discontinue {idsMessage}.", ex);
         }
     }
 

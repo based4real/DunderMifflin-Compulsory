@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using API.Validation;
 using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
 using Service.Models.Requests;
@@ -64,9 +65,19 @@ public class PaperController(IPaperService service) : ControllerBase
     [HttpPatch("{id}/discontinue")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Discontinue(int id)
+    public async Task<IActionResult> Discontinue([Range(1, int.MaxValue)] int id)
     {
-        await service.Discontinue(id);
+        await service.Discontinue([id]);
+        return NoContent();
+    }
+    
+    [HttpPatch("discontinue")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DiscontinueBulk([FromBody, MinLength(1)] List<int> ids)
+    {
+        await service.Discontinue(ids);
         return NoContent();
     }
     

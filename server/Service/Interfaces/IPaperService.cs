@@ -13,6 +13,6 @@ public interface IPaperService
                                               List<int>? propertyIds = null, FilterType filterType = FilterType.Or);
     public Task<PaperDetailViewModel> CreatePaper(PaperCreateModel paper);
     public Task<PaperPropertyDetailViewModel> CreateProperty(PaperPropertyCreateModel property);
-    public Task Discontinue(int id);
+    public Task Discontinue(List<int> ids);
     public Task Restock(int id, int amount);
 }
