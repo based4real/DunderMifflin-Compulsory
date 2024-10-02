@@ -1,5 +1,6 @@
 ﻿using DataAccess;
 using Microsoft.EntityFrameworkCore;
+using Service.Exceptions;
 using Service.Interfaces;
 using Service.Models.Requests;
 using Service.Models.Responses;
@@ -8,6 +9,26 @@ namespace Service;
 
 public class PaperService(AppDbContext context) : IPaperService
 {
+    public async Task<List<PaperDetailViewModel>> All(bool? discontinued)
+    {
+        // Lav til en IQueryable så vi kan tilføje "filteret"
+        var query = context.Papers
+            .Include(property => property.Properties)
+            .AsQueryable();
+
+        if (discontinued.HasValue)
+            query = query.Where(paper => paper.Discontinued == discontinued.Value);
+        
+        var result = await query
+            .Select(paper => PaperDetailViewModel.FromEntity(paper))
+            .ToListAsync();
+
+        if (!result.Any())
+            throw new NotFoundException("No papers found");
+
+        return result;
+    }
+    
     public async Task<PaperPropertyDetailViewModel> CreateProperty(PaperPropertyCreateModel property)
     {
         var toProperty = property.ToProperty();

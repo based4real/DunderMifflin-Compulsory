@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
 using Service.Models.Requests;
 using Service.Models.Responses;
@@ -24,5 +25,13 @@ public class PaperController(IPaperService service) : ControllerBase
     {
         var createdProperty = await service.CreateProperty(property);
         return CreatedAtAction(nameof(CreatePaperProperty), new { id = createdProperty.Id }, createdProperty);
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<PaperDetailViewModel>>> All([FromQuery] bool? discontinued,
+        [FromQuery, Range(1, int.MaxValue)] int page = 1,
+        [FromQuery, Range(1, 1000)] int pageSize = 10)
+    {
+        return Ok(await service.All(discontinued));
     }
 }
