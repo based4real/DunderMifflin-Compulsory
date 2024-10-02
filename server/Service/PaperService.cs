@@ -199,34 +199,30 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
             throw new DbUpdateException($"An error occurred while trying to discontinue {idsMessage}.", ex);
         }
     }
+    
+    private static void ValidateIds(List<int> validIds, List<int> uniqueIds)
+    {
+        if (validIds.Count != 0) return;
+        
+        string errorMessage = uniqueIds.Count == 1
+            ? $"The provided ID {uniqueIds[0]} is invalid. All IDs must be positive numbers greater than 0."
+            : $"All provided IDs are invalid. The following IDs are not valid: {string.Join(", ", uniqueIds)}. All IDs must be positive numbers greater than 0.";
+
+        throw new ArgumentException(errorMessage);
+    }
 
     private static List<int> ValidateFoundPapers(List<Paper> papers, List<int> validIds)
     {
         var foundIds = papers.Select(p => p.Id).ToList();
         var invalidIds = validIds.Except(foundIds).ToList();
+
+        if (foundIds.Count != 0) return foundIds;
         
-        if (foundIds.Count == 0)
-        {
-            string errorMessage = invalidIds.Count == 1
-                ? $"The provided ID {invalidIds[0]} is invalid."
-                : $"No valid paper IDs were provided. The following IDs are invalid: {string.Join(", ", invalidIds)}";
+        string errorMessage = invalidIds.Count == 1
+            ? $"The provided ID {invalidIds[0]} is invalid."
+            : $"No valid paper IDs were provided. The following IDs are invalid: {string.Join(", ", invalidIds)}";
 
-            throw new NotFoundException(errorMessage);
-        }
-
-        return foundIds;
-    }
-
-    private static void ValidateIds(List<int> validIds, List<int> uniqueIds)
-    {
-        if (validIds.Count == 0)
-        {
-            string errorMessage = uniqueIds.Count == 1
-                ? $"The provided ID {uniqueIds[0]} is invalid. All IDs must be positive numbers greater than 0."
-                : $"All provided IDs are invalid. The following IDs are not valid: {string.Join(", ", uniqueIds)}. All IDs must be positive numbers greater than 0.";
-
-            throw new ArgumentException(errorMessage);
-        }
+        throw new NotFoundException(errorMessage);
     }
 
     public async Task Restock(List<PaperRestockUpdateModel> restockModels)

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 using Service.Interfaces;
 using Service.Models.Requests;
 using Service.Models.Responses;
@@ -29,7 +30,16 @@ public class OrderController(IOrderService service) : ControllerBase
     [HttpPatch("{id}/status")]
     public async Task<IActionResult> UpdateOrderStatus(int id, OrderStatus status)
     {
-        await service.UpdateOrderStatus(id, status);
+        await service.UpdateOrderStatus([id], status);
+        return NoContent();
+    }
+    
+    [HttpPatch("status")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateOrderStatusBulk([FromBody, MinLength(1)] List<int> ids, [FromQuery] OrderStatus status)
+    {
+        await service.UpdateOrderStatus(ids, status);
         return NoContent();
     }
 }
