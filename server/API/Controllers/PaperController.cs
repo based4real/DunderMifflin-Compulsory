@@ -32,10 +32,12 @@ public class PaperController(IPaperService service) : ControllerBase
     public async Task<ActionResult<PaperPagedViewModel>> All(
         [FromQuery, Range(1, int.MaxValue)] int page = 1,
         [FromQuery, Range(1, 1000)] int pageSize = 10,
+        [FromQuery] string? search = null,
         [FromQuery] bool? discontinued = null,
         [FromQuery] string? orderBy = null,
         [FromQuery] string? sortBy = null)
     {
-        return Ok(await service.AllPaged(page, pageSize, discontinued, orderBy, sortBy));
+        var sortOrder = sortBy ?? "asc";
+        return Ok(await service.AllPaged(page, pageSize, search, discontinued, orderBy, sortOrder));
     }
 }

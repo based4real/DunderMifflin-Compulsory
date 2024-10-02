@@ -38,14 +38,22 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
         return result;
     }
     
-    public async Task<PaperPagedViewModel> AllPaged(int pageNumber, int itemsPerPage, bool? discontinued, string? orderBy, String sortOrder)
+    public async Task<PaperPagedViewModel> AllPaged(int pageNumber, int itemsPerPage, string? search, bool? discontinued, string? orderBy, string sortOrder)
     {
         var query = repository.GetFilteredPapers(discontinued);
+
+        // Søge efter navn
+        if (!string.IsNullOrEmpty(search))
+            query = query.Where(paper => paper.Name.ToLower().Contains(search.ToLower()));
+        
+        // orderBy og groupBy
         var orderType = PaperOrderBy.Id;
         if (orderBy != null)
             orderType = ParseOrderBy(orderBy);
         
         var sortedPapers = repository.OrderBy(query, orderType, sortOrder);
+        
+        // Pagination
         var totalItems = await sortedPapers.CountAsync();
 
         var pagedPapers = await sortedPapers
