@@ -4,6 +4,7 @@ using Service.Exceptions;
 using Service.Interfaces;
 using Service.Models.Requests;
 using Service.Models.Responses;
+using SharedDependencies.Enums;
 
 namespace Service;
 
@@ -52,5 +53,30 @@ public class OrderService(AppDbContext context) : IOrderService
             throw new DbUpdateException("An error occurred while trying to insert Order into database.", ex);
         }
         return OrderDetailViewModel.FromEntity(newOrder);
+    }
+
+    public async Task UpdateOrderStatus(int id, OrderStatus orderStatus)
+    {
+        var order = await context.Orders.FindAsync(id);
+        if (order == null)
+            throw new NotFoundException($"Order with ID {id} not found.");
+        
+        string status = orderStatus.ToString().ToLower();
+        if (!Enum.TryParse<OrderStatus>(status, true, out _))
+        {
+            var validStatuses = string.Join(", ", Enum.GetNames(typeof(OrderStatus)));
+            throw new ArgumentException($"Invalid order status value: {status}.\n Valid values are: {validStatuses}");
+        }
+            
+        order.Status = status;
+        
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new DbUpdateException($"An error occurred while updating the order status for order with ID {id}.", ex);
+        }
     }
 }

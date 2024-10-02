@@ -2,6 +2,7 @@
 using Service.Interfaces;
 using Service.Models.Requests;
 using Service.Models.Responses;
+using SharedDependencies.Enums;
 
 namespace API.Controllers;
 
@@ -23,5 +24,12 @@ public class OrderController(IOrderService service) : ControllerBase
     {
         var createdOrder = await service.Create(order);
         return CreatedAtAction(nameof(CreateOrder), new { id = createdOrder.Id }, createdOrder);
+    }
+    
+    [HttpPatch("{id}/status")]
+    public async Task<IActionResult> UpdateOrderStatus(int id, OrderStatus status)
+    {
+        await service.UpdateOrderStatus(id, status);
+        return NoContent();
     }
 }
