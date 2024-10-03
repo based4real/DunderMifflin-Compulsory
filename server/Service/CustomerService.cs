@@ -26,7 +26,7 @@ public class CustomerService(AppDbContext context) : ICustomerService
             .SingleOrDefaultAsync();
 
         if (result == null)
-            throw new NotFoundException("Customer not found");
+            throw new NotFoundException($"Customer with ID {id} not found");
 
         return result;
     }

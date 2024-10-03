@@ -2,6 +2,7 @@ using API.ExceptionHandler;
 using DataAccess;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Converters;
 using Service;
 using Service.Interfaces;
 
@@ -19,11 +20,19 @@ builder.Services.AddDbContext<AppDbContext>((serviceProvider, options) =>
     options.UseNpgsql(Environment.GetEnvironmentVariable("LocalDbConn") ?? appOptions.LocalDbConn);
 });
 
+builder.Services.AddScoped<IPaperRepository, PaperRepository>();
+
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IPaperService, PaperService > ();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.Converters.Add(new StringEnumConverter());
+                });
+                
+                
 builder.Services.AddOpenApiDocument(configure =>
 {
     configure.Title = "Dunder Mifflin API";

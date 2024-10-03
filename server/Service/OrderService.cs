@@ -4,6 +4,7 @@ using Service.Exceptions;
 using Service.Interfaces;
 using Service.Models.Requests;
 using Service.Models.Responses;
+using SharedDependencies.Enums;
 
 namespace Service;
 
@@ -52,5 +53,45 @@ public class OrderService(AppDbContext context) : IOrderService
             throw new DbUpdateException("An error occurred while trying to insert Order into database.", ex);
         }
         return OrderDetailViewModel.FromEntity(newOrder);
+    }
+
+    public async Task UpdateOrderStatus(List<int> ids, OrderStatus orderStatus)
+    {
+        // Filter og tjek ids
+        var validIds = ValidationHelper.FilterValidIds(ids.Distinct().ToList(), "order", out var invalidIds);
+        if (validIds.Count == 0)
+            throw new BadRequestException("All provided IDs are invalid. Please provide valid order IDs greater than 0.");
+
+        // Hent ordre med gyldige ids
+        var orders = await context.Orders.Where(order => validIds.Contains(order.Id)).ToListAsync();
+        var validItemsFound = ValidationHelper.ValidateItemsExistence(validIds, orders, o => o.Id, out var notFoundIds);
+
+        if (!validItemsFound)
+            throw new NotFoundException("No valid order IDs were provided for updating status.");
+
+        // Tjek order status
+        string status = orderStatus.ToString().ToLower();
+        if (!Enum.TryParse<OrderStatus>(status, true, out _))
+        {
+            var validStatuses = string.Join(", ", Enum.GetNames(typeof(OrderStatus)));
+            throw new BadRequestException($"Invalid order status value: {status}. Valid values are: {validStatuses}");
+        }
+
+        // Opdater status for gyldige ordre
+        var ordersToUpdate = orders.Where(o => !invalidIds.Contains(o.Id) && !notFoundIds.Contains(o.Id)).ToList();
+        ordersToUpdate.ForEach(order => order.Status = status);
+        
+        try
+        {
+            await context.SaveChangesAsync();
+        }
+        catch (DbUpdateException ex)
+        {
+            string idsMessage = validIds.Count == 1
+                ? $"the order with ID {validIds[0]}"
+                : $"the orders with IDs {string.Join(", ", validIds)}";
+
+            throw new DbUpdateException($"An error occurred while updating the status for {idsMessage}.", ex);
+        }
     }
 }
