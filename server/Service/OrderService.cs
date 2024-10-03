@@ -57,17 +57,29 @@ public class OrderService(AppDbContext context) : IOrderService
 
     public async Task UpdateOrderStatus(List<int> ids, OrderStatus orderStatus)
     {
-        var validIds = ValidateIds(ids.Distinct().ToList());
+        // Filter og tjek ids
+        var validIds = ValidationHelper.FilterValidIds(ids.Distinct().ToList(), "order", out var invalidIds);
+        if (validIds.Count == 0)
+            throw new BadRequestException("All provided IDs are invalid. Please provide valid order IDs greater than 0.");
 
+        // Hent ordre med gyldige ids
         var orders = await context.Orders.Where(order => validIds.Contains(order.Id)).ToListAsync();
-        var foundIds = orders.Select(o => o.Id).ToList();
-        var invalidIds = validIds.Except(foundIds).ToList();
-        
-        ValidateFoundOrders(foundIds, invalidIds);
-        
-        var status = ValidateOrderStatus(orderStatus);
+        var validItemsFound = ValidationHelper.ValidateItemsExistence(validIds, orders, o => o.Id, out var notFoundIds);
 
-        foreach (var order in orders) order.Status = status;
+        if (!validItemsFound)
+            throw new NotFoundException("No valid order IDs were provided for updating status.");
+
+        // Tjek order status
+        string status = orderStatus.ToString().ToLower();
+        if (!Enum.TryParse<OrderStatus>(status, true, out _))
+        {
+            var validStatuses = string.Join(", ", Enum.GetNames(typeof(OrderStatus)));
+            throw new BadRequestException($"Invalid order status value: {status}. Valid values are: {validStatuses}");
+        }
+
+        // Opdater status for gyldige ordre
+        var ordersToUpdate = orders.Where(o => !invalidIds.Contains(o.Id) && !notFoundIds.Contains(o.Id)).ToList();
+        ordersToUpdate.ForEach(order => order.Status = status);
         
         try
         {
@@ -75,45 +87,11 @@ public class OrderService(AppDbContext context) : IOrderService
         }
         catch (DbUpdateException ex)
         {
-            string idsMessage = foundIds.Count == 1
-                ? $"the order with ID {foundIds[0]}"
-                : $"the orders with IDs {string.Join(", ", foundIds)}";
+            string idsMessage = validIds.Count == 1
+                ? $"the order with ID {validIds[0]}"
+                : $"the orders with IDs {string.Join(", ", validIds)}";
 
             throw new DbUpdateException($"An error occurred while updating the status for {idsMessage}.", ex);
         }
-    }
-
-    private static List<int> ValidateIds(List<int> ids)
-    {
-        var validIds = ids.Where(id => id > 0).ToList();
-
-        if (validIds.Count != 0) return validIds;
-        
-        string errorMessage = ids.Count == 1
-            ? $"The provided ID {ids[0]} is invalid. All IDs must be positive numbers greater than 0."
-            : $"All provided IDs are invalid. The following IDs are not valid: {string.Join(", ", ids)}. All IDs must be positive numbers greater than 0.";
-
-        throw new BadRequestException(errorMessage);
-    }
-    
-    private static void ValidateFoundOrders(List<int> foundIds, List<int> invalidIds)
-    {
-        if (foundIds.Count != 0) return;
-        
-        string errorMessage = invalidIds.Count == 1
-            ? $"The provided ID {invalidIds[0]} is invalid."
-            : $"No valid order IDs were provided. The following IDs are invalid: {string.Join(", ", invalidIds)}.";
-
-        throw new NotFoundException(errorMessage);
-    }
-    
-    private static string ValidateOrderStatus(OrderStatus orderStatus)
-    {
-        string status = orderStatus.ToString().ToLower();
-        
-        if (Enum.TryParse<OrderStatus>(status, true, out _)) return status;
-        
-        var validStatuses = string.Join(", ", Enum.GetNames(typeof(OrderStatus)));
-        throw new BadRequestException($"Invalid order status value: {status}. Valid values are: {validStatuses}");
     }
 }
