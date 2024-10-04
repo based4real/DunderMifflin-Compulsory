@@ -8,6 +8,7 @@ export default function Navigation() {
   const location = useLocation(); 
 
   return (
+    <div className="bg-base-100 text-base-content sticky top-0 z-30 flex h-16 w-full justify-center bg-opacity-90 backdrop-blur transition-shadow duration-100 [transform:translate3d(0,0,0)] shadow-sm">
     <div className="navbar px-6">
       <div className="flex w-full items-center justify-between">
         <div className="navbar-start flex items-center space-x-4">
@@ -55,6 +56,7 @@ export default function Navigation() {
           <ThemeSwitcher />
         </div>
       </div>
+    </div>
     </div>
   );
 }

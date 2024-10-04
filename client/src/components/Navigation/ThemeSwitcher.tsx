@@ -2,6 +2,7 @@ import { useAtom } from "jotai";
 import { ThemeAtom } from "../../atoms/ThemeAtom"
 import themes from "daisyui/src/theming/themes";
 import { Theme } from "daisyui";
+import { FaPalette } from "react-icons/fa";
 
 export default function ThemeSwitcher() {
     const [theme, setTheme] = useAtom(ThemeAtom);
@@ -9,7 +10,7 @@ export default function ThemeSwitcher() {
     return (
         <div className="dropdown dropdown-end">
             <div tabIndex={0} role="button" className="btn btn-ghost m-1">
-                Theme
+            <FaPalette className="w-5 h-5" />
                 <svg
                     width="12px"
                     height="12px"
