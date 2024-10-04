@@ -1,8 +1,10 @@
+import { useNavigate } from "react-router-dom";
 import Profile from "./Profile";
 import ShopCart from "./ShopCart";
 import ThemeSwitcher from "./ThemeSwitcher";
 
 export default function Navigation() {
+  const navigate = useNavigate();
     return (
         <div className="navbar">
           <div className="navbar-start">
@@ -24,14 +26,14 @@ export default function Navigation() {
               <ul
                 tabIndex={0}
                 className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
-                <li><a>Item 1</a></li>
+                <li><a onClick={() => navigate("/shop")}>Shop</a></li>
               </ul>
             </div>
-            <a className="btn btn-ghost text-xl">Dunder Mifflin</a>
+            <a className="btn btn-ghost text-xl" onClick={() => navigate("/")}>Dunder Mifflin</a>
           </div>
           <div className="navbar-center hidden lg:flex">
             <ul className="menu menu-horizontal px-1">
-              <li><a>Shop</a></li>
+              <li><a onClick={() => navigate("/shop")}>Shop</a></li>
             </ul>
           </div>
           <div className="navbar-end gap-2">
