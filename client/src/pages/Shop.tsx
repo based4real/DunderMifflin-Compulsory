@@ -1,10 +1,12 @@
 import ShopProduct from "../components/Shop/ShopProduct";
+import ShopSortDropDown from "../components/Shop/ShopSortDropdown";
 
 export default function ShopPage() {
+
     return (
         <div className="min-h-screen flex justify-center p-4 bg-base-200">
         <div className="flex flex-col lg:flex-row lg:space-x-6 max-w-screen-lg w-full">
-            <aside className="w-64 bg-base-100 p-4 shadow-md lg:-ml-32">
+            <aside className="w-64 bg-base-100 p-4 shadow-md rounded-box lg:-ml-32">
             <h2 className="text-lg font-bold mb-4">Filters</h2>
             <div className="form-control mb-4">
                 <label className="label cursor-pointer">
@@ -37,7 +39,10 @@ export default function ShopPage() {
             </div>
             </aside>
 
-            <main className="flex-1 p-4">
+            <main className="flex-1 pl-4 pr-4">
+            <div className="flex justify-end mb-2">
+                <ShopSortDropDown />
+            </div>
             <div className="grid grid-cols-1 gap-6">
             {Array.from({ length: 10 }, (_, index) => (
                     <ShopProduct key={index}/>
