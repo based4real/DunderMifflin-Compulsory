@@ -40,8 +40,13 @@ export default function ShopPage() {
             </aside>
 
             <main className="flex-1 pl-4 pr-4 rounded-box">
-            <div className="flex justify-end mb-2 mt-2">
-                <ShopSortDropDown />
+            <div className="flex w-auto flex-row items-center">
+                <div className="flex mt-2 align-middle justify-center">
+                    <h3 className="font-bold text-2xl mb-2">Products</h3>
+                </div>
+                <div className="flex w-full justify-end mb-2 mt-2">
+                    <ShopSortDropDown />
+                </div>
             </div>
             <div className="grid grid-cols-1 gap-3">
             {Array.from({ length: 10 }, (_, index) => (

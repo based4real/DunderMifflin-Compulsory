@@ -34,7 +34,7 @@ export default function ShopCartProduct() {
                 <div className="divider divider-horizontal"></div>
                 <label className="input input-bordered flex items-center gap-2">
                     <input type="number" min={1} step={1} className="grow w-12" placeholder="1" />
-                    <span className="badge badge-primary">Items</span>
+                    <span className="badge badge-primary">Item(s)</span>
                 </label>
             </div>
         </div>
