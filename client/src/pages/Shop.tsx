@@ -49,9 +49,17 @@ export default function ShopPage() {
                 </div>
             </div>
             <div className="grid grid-cols-1 gap-3">
-            {Array.from({ length: 10 }, (_, index) => (
-                    <ShopProduct key={index}/>
-                ))}
+            {Array.from({ length: 5 }, (_, index) => (
+                <ShopProduct key={index}/>
+            ))}
+            <div className="flex justify-center align-middle">
+                <div className="flex join">
+                <button className="join-item btn bg-base-100">1</button>
+                <button className="join-item btn btn-active">2</button>
+                <button className="join-item btn bg-base-100">3</button>
+                <button className="join-item btn bg-base-100">4</button>
+                </div>
+            </div>
             </div>
             </main>
         </div>
