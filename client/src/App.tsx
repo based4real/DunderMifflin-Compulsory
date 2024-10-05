@@ -6,7 +6,7 @@ import Navigation from "./components/Navigation/Navigation";
 import HomePage from "./pages/Home";
 import ShopPage from "./pages/Shop";
 import CartPage from "./pages/Cart";
-import AdminDashboardPage from "./pages/Admin/Dashboard";
+import AdminProductsPage from "./pages/Admin/Products";
 
 const App = () => {
 
@@ -25,7 +25,7 @@ const App = () => {
         <Route path="/shop" element={<ShopPage />} />
         <Route path="/shop/cart" element={<CartPage />} />
 
-        <Route path="/admin" element={<AdminDashboardPage />} />
+        <Route path="/admin/products" element={<AdminProductsPage />} />
       </Routes>
       </>
   );

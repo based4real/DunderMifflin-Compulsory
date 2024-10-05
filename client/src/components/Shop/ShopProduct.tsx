@@ -1,4 +1,5 @@
-import { FaBox, FaShoppingCart } from "react-icons/fa"; 
+import { FaBox, FaShoppingCart, FaWarehouse } from "react-icons/fa"; 
+import { FaBoxArchive } from "react-icons/fa6";
 
 export default function ShopProduct() {
   return (
@@ -13,17 +14,24 @@ export default function ShopProduct() {
           </div>
 
           <p className="text-sm flex items-center">
-            <FaBox className="mr-2 text-primary" />
+            <FaWarehouse className="mr-2 text-primary" />
             <span className="text-gray-500">500 in stock</span>
           </p>
         </div>
 
         <div className="flex flex-col items-end space-y-3">
-          <p className="text-xl font-bold text-primary w-full text-center">$430</p>
-          <button className="btn btn-primary w-full flex items-center justify-center gap-2">
+          <p className="text-xl font-bold text-primary w-auto text-center">$430</p>
+          <div className="flex gap-4 flex-row">
+          <label className="input input-bordered w-auto flex items-center gap-2">
+          <FaBox />
+
+          <input type="number" className="grow w-12" step={1} min={1} placeholder="1" />
+          </label>
+          <button className="btn btn-primary flex items-center justify-center gap-2">
             <FaShoppingCart />
             Add to cart
           </button>
+          </div>
         </div>
       </div>
     </div>

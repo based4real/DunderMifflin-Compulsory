@@ -1,3 +1,5 @@
+import { FaEdit, FaTrash } from "react-icons/fa";
+
 export default function ProductTableItem() {
     return (
         <tr>
@@ -21,8 +23,11 @@ export default function ProductTableItem() {
         </td>
         <td>50</td>
         <td>$29.99</td>
-        <th>
-        <button className="btn btn-ghost btn-xs">details</button>
+        <th className="text-right">
+        <div className="join join-vertical lg:join-horizontal">
+            <button className="btn text-primary join-item"><FaEdit/></button>
+            <button className="btn text-primary join-item"><FaTrash/></button>
+        </div>
         </th>
     </tr>
     )

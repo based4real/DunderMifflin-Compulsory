@@ -1,15 +1,21 @@
+import { FaPlus } from "react-icons/fa";
 import LeftNavigation from "../../components/Admin/LeftNavigation";
 import ProductTableItem from "../../components/Admin/ProductTableItem";
 
-export default function AdminDashboardPage() {
+export default function AdminProductsPage() {
     return (
         <div className="min-h-screen flex justify-center p-4 bg-base-200">
         <div className="flex flex-col lg:flex-row lg:space-x-6 max-w-screen-lg w-full">
             <LeftNavigation />
             <main className="flex-1 pl-4 pr-4 rounded-box">
             <div className="flex w-auto flex-row items-center">
-                <div className="flex mt-2 align-middle justify-center">
+                <div className="flex mt-2 justify-center">
                     <h3 className="font-bold text-2xl mb-2">Products</h3>
+                </div>
+                <div className="flex w-full justify-end">
+                    <button className="btn btn-sm btn-primary">
+                        <FaPlus />
+                    </button>
                 </div>
             </div>
             <div className="grid grid-cols-1 gap-3">

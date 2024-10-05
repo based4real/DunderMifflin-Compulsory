@@ -1,4 +1,4 @@
-import { FaBox, FaShoppingCart } from "react-icons/fa";
+import { FaBox, FaShoppingCart, FaWarehouse } from "react-icons/fa";
 
 export default function ShopCartProduct() {
   return (
@@ -13,7 +13,7 @@ export default function ShopCartProduct() {
           </div>
 
           <p className="text-sm flex items-center">
-            <FaBox className="mr-2 text-primary" />
+            <FaWarehouse className="mr-2 text-primary" />
             <span className="text-gray-500">500 in stock</span>
           </p>
           <div className="flex items-center">
