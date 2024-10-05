@@ -1,8 +1,8 @@
-import { FaBox, FaShoppingCart } from "react-icons/fa";
+import { FaBox, FaShoppingCart } from "react-icons/fa"; 
 
 export default function ShopProduct() {
   return (
-    <div className="bg-base-100 shadow-lg rounded-box p-6 flex flex-col justify-between h-full">
+    <div className="border-base-300 bg-base-100 border shadow-lg rounded-box p-6 flex flex-col justify-between h-full">
       <div className="flex justify-between items-start">
         <div className="space-y-4 flex-grow">
           <div className="space-y-2">
