@@ -19,8 +19,8 @@ export default function AdminProductsPage() {
                 </div>
             </div>
             <div className="grid grid-cols-1 gap-3">
-            <div className="overflow-x-auto">
-            <table className="table bg-base-100 border border-base-300">
+            <div className="overflow-x-auto rounded-box border border-base-300 bg-base-100 p-0">
+                <table className="table w-full">
                 <thead>
                 <tr>
                     <th>
