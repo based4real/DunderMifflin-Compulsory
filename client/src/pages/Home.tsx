@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { api } from '../http';
 
 const HomePage: React.FC = () => {
+  useEffect(() => {
+    api.customer.all().then(response => {
+      console.log("customers: ", response.data);
+    }).catch(error => {
+      console.error("Fejl ved at hente customers: ", error);
+    });
+  }, []);
+
   return (
     <div className="hero bg-base-200 min-h-screen">
     <div className="hero-content text-center">
