@@ -1,10 +1,12 @@
-﻿using DataAccess.Models;
+﻿using System.ComponentModel.DataAnnotations;
+using DataAccess.Models;
 using Newtonsoft.Json;
 
 namespace Service.Models.Responses;
 
 public class PaperPropertyDetailViewModel
 {
+    [Required]
     public int Id { get; set; }
     public string? Name { get; set; }
     
