@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using DataAccess.Models;
 
@@ -8,10 +8,10 @@ public class CustomerOrderDetailViewModel : CustomerDetailViewModel
 {
     // For at få ordre til at ligge sig under customer i json dataen
     [JsonPropertyOrder(2)]
+    [Required]
     public required IEnumerable<OrderDetailViewModel> Orders { get; set; }
     
-    // STOP med den dumme warning >:(
-    public static new CustomerOrderDetailViewModel FromEntity(Customer customer)
+    public new static CustomerOrderDetailViewModel FromEntity(Customer customer)
     {
         return new CustomerOrderDetailViewModel
         {

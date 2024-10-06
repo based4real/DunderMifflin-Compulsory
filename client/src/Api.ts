@@ -11,8 +11,9 @@
 
 export interface CustomerDetailViewModel {
   /** @format int32 */
-  id?: number;
-  name?: string;
+  id: number;
+  /** @minLength 1 */
+  name: string;
   address?: string | null;
   phone?: string | null;
   email?: string | null;
@@ -30,50 +31,50 @@ export interface ProblemDetails {
 }
 
 export interface CustomerOrderPagedViewModel {
-  customerDetails?: CustomerOrderDetailViewModel;
-  pagingInfo?: PagingInfo;
+  customerDetails: CustomerOrderDetailViewModel;
+  pagingInfo: PagingInfo;
 }
 
 export type CustomerOrderDetailViewModel = CustomerDetailViewModel & {
-  orders?: OrderDetailViewModel[];
+  orders: OrderDetailViewModel[];
 };
 
 export interface OrderDetailViewModel {
   /** @format int32 */
-  id?: number;
+  id: number;
   status?: string | null;
   /** @format date-time */
   orderDate?: string;
   /** @format date */
   deliveryDate?: string | null;
   /** @format double */
-  totalPrice?: number;
-  entry?: OrderEntryDetailViewModel[];
+  totalPrice: number;
+  entry: OrderEntryDetailViewModel[];
 }
 
 export interface OrderEntryDetailViewModel {
   /** @format int32 */
-  id?: number;
+  id: number;
   /** @format int32 */
   productId?: number | null;
   productName?: string | null;
   /** @format int32 */
-  quantity?: number;
+  quantity: number;
   /** @format double */
-  price?: number;
+  price: number;
   /** @format double */
-  totalPrice?: number;
+  totalPrice: number;
 }
 
 export interface PagingInfo {
   /** @format int32 */
-  totalItems?: number;
+  totalItems: number;
   /** @format int32 */
-  itemsPerPage?: number;
+  itemsPerPage: number;
   /** @format int32 */
-  currentPage?: number;
+  currentPage: number;
   /** @format int32 */
-  totalPages?: number;
+  totalPages: number;
 }
 
 export interface OrderCreateModel {
@@ -109,19 +110,19 @@ export enum OrderStatus {
 
 export interface PaperDetailViewModel {
   /** @format int32 */
-  id?: number;
+  id: number;
   name?: string | null;
-  discontinued?: boolean;
+  discontinued: boolean;
   /** @format int32 */
-  stock?: number;
+  stock: number;
   /** @format double */
-  price?: number;
+  price: number;
   properties?: PaperPropertyDetailViewModel[] | null;
 }
 
 export interface PaperPropertyDetailViewModel {
   /** @format int32 */
-  id?: number;
+  id: number;
   name?: string | null;
   paperPropertyDetails?: PaperDetailViewModel[] | null;
 }
@@ -154,7 +155,7 @@ export interface PaperPropertyCreateModel {
 
 export interface PaperPagedViewModel {
   papers?: PaperDetailViewModel[];
-  pagingInfo?: PagingInfo;
+  pagingInfo: PagingInfo;
 }
 
 export enum PaperOrderBy {
@@ -187,6 +188,12 @@ export interface PaperRestockUpdateModel {
    * @max 2147483647
    */
   amount?: number;
+}
+
+export interface PaperPropertySummaryViewModel {
+  /** @format int32 */
+  id: number;
+  name?: string | null;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
@@ -586,6 +593,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         method: "POST",
         body: data,
         type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Paper
+     * @name AllProperties
+     * @summary Retrieves a list of all paper properties.
+     * @request GET:/api/Paper/property
+     */
+    allProperties: (params: RequestParams = {}) =>
+      this.request<PaperPropertySummaryViewModel[], any>({
+        path: `/api/Paper/property`,
+        method: "GET",
         format: "json",
         ...params,
       }),
