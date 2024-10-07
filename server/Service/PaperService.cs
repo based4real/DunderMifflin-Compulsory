@@ -225,4 +225,12 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
             throw new DbUpdateException($"An error occurred while trying to restock {idsMessage}.", ex);
         }
     }
+    
+    public async Task<List<PaperPropertySummaryViewModel>> AllProperties()
+    {
+        return await context.Properties
+                            .OrderBy(property => property.PropertyName.ToLower())
+                            .Select(property => PaperPropertySummaryViewModel.FromEntity(property))
+                            .ToListAsync();
+    }
 }

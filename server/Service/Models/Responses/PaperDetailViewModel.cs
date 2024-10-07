@@ -5,10 +5,18 @@ namespace Service.Models.Responses;
 
 public class PaperDetailViewModel
 {
+    [Required]
     public int Id { get; set; }
+    
     public string? Name { get; set; }
+    
+    [Required]
     public bool Discontinued { get; set; }
+    
+    [Required]
     public int Stock { get; set; }
+    
+    [Required]
     public double Price { get; set; }
     
     public List<PaperPropertyDetailViewModel>? Properties { get; set; }

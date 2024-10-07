@@ -1,11 +1,14 @@
-﻿using DataAccess.Models;
+﻿using System.ComponentModel.DataAnnotations;
+using DataAccess.Models;
 
 namespace Service.Models.Responses;
 
 public class CustomerDetailViewModel
 {
+    [Required]
     public int Id { get; set; }
     
+    [Required]
     public string Name { get; set; } = null!;
     public string? Address { get; set; }
     public string? Phone { get; set; }
@@ -15,7 +18,7 @@ public class CustomerDetailViewModel
     {
         return new CustomerDetailViewModel
         {
-            Id = customer!.Id,
+            Id = customer.Id,
             Name = customer.Name,
             Address = customer.Address,
             Phone = customer.Phone,

@@ -161,4 +161,17 @@ public class PaperController(IPaperService service) : ControllerBase
         await service.Restock(restockRequests);
         return NoContent();
     }
+    
+    /// <summary>
+    /// Retrieves a list of all paper properties.
+    /// </summary>
+    /// <returns>List of paper properties.</returns>
+    /// <response code="200">Returns the list of paper properties.</response>
+    [HttpGet("property")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(List<PaperPropertySummaryViewModel>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<PaperPropertySummaryViewModel>>> AllProperties()
+    {
+        return Ok(await service.AllProperties());
+    }
 }
