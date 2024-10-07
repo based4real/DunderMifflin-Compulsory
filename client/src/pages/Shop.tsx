@@ -1,7 +1,8 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { api } from "../http";
 import { ShopSortAtom, ShopProductsAtom, ShopSelectedPropertiesAtom, ShopFilterTypeAtom, ShopDiscontinuedAtom, ShopPagingInfoAtom } from "../atoms/ShopAtoms";
+import { IsBackendReachableAtom } from "../atoms/IsBackendReachableAtom";
 import ShopProduct from "../components/Shop/ShopProduct";
 import ShopSortDropDown from "../components/Shop/ShopSortDropdown";
 import ShopFilterPanel from "../components/Shop/ShopFilterPanel";
@@ -10,6 +11,8 @@ import PageSizeSelector from "../components/Pagination/PageSizeSelector"
 import PageInfoDisplay from "../components/Pagination/PageInfoDisplay";
 
 export default function ShopPage() {
+    const [isBackendReachable] = useAtom(IsBackendReachableAtom);
+    const [loading, setLoading] = useState(false);
     const [sort] = useAtom(ShopSortAtom);
     const [papers, setPapers] = useAtom(ShopProductsAtom);
     const [selectedProperties, setSelectedProperties] = useAtom(ShopSelectedPropertiesAtom);
@@ -18,31 +21,47 @@ export default function ShopPage() {
     const [pagingInfo, setPagingInfo] = useAtom(ShopPagingInfoAtom);
     
     useEffect(() => {
-        const { orderBy, sortBy } = sort;
+        const fetchPapers = async () => {
+            if (!isBackendReachable) return;
 
-        api.paper.all({ page: pagingInfo.currentPage,
-                              pageSize: pagingInfo.itemsPerPage,
-                              filter: selectedProperties.join(","),
-                              filterType, orderBy, sortBy, discontinued })
-            .then(response => {
-                setPapers(response.data.papers ?? []);
-                setPagingInfo(prev => ({
-                    ...prev,
-                    totalPages: response.data.pagingInfo?.totalPages ?? 1,
-                    totalItems: response.data.pagingInfo?.totalItems ?? 0,
-                }));
+            setLoading(true);
+            const { orderBy, sortBy } = sort;
 
-                if (pagingInfo.currentPage > (response.data.pagingInfo?.totalPages ?? 1)) {
-                    setPagingInfo(prev => ({
+            api.paper
+                .all({
+                    page: pagingInfo.currentPage,
+                    pageSize: pagingInfo.itemsPerPage,
+                    filter: selectedProperties.join(","),
+                    filterType,
+                    orderBy,
+                    sortBy,
+                    discontinued,
+                })
+                .then((response) => {
+                    setPapers(response.data.papers ?? []);
+                    setPagingInfo((prev) => ({
                         ...prev,
-                        currentPage: 1,
+                        totalPages: response.data.pagingInfo?.totalPages ?? 1,
+                        totalItems: response.data.pagingInfo?.totalItems ?? 0,
                     }));
-                }
-            })
-            .catch(error => {
-                console.error("Error fetching papers: ", error);
-            });
-    }, [pagingInfo.currentPage, pagingInfo.itemsPerPage, selectedProperties, filterType, sort, discontinued]);
+
+                    if (pagingInfo.currentPage > (response.data.pagingInfo?.totalPages ?? 1)) {
+                        setPagingInfo((prev) => ({
+                            ...prev,
+                            currentPage: 1,
+                        }));
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error fetching papers: ", error);
+                })
+                .finally(() => {
+                    setLoading(false);
+                });
+        };
+
+        fetchPapers();
+    }, [pagingInfo.currentPage, pagingInfo.itemsPerPage, selectedProperties, filterType, sort, discontinued, isBackendReachable]);
     
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -85,16 +104,29 @@ export default function ShopPage() {
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 gap-3">
-                        {papers.map((paper) => (
-                            <ShopProduct key={paper.id} paper={paper} />
-                        ))}
-                    </div>
-                    <Pagination
-                        currentPage={pagingInfo.currentPage}
-                        totalPages={pagingInfo.totalPages}
-                        onPageChange={(page) => setPagingInfo(prev => ({ ...prev, currentPage: page }))}
-                    />
+                    {loading ? (
+                        <div className="flex justify-center mt-4">
+                            <span className="loading loading-spinner loading-lg"></span>
+                        </div>
+                    ) : papers.length === 0 ? (
+                        <div className="flex justify-center mt-4">
+                            <span className="text-lg font-semibold">No products found.</span>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 gap-3">
+                            {papers.map((paper) => (
+                                <ShopProduct key={paper.id} paper={paper} />
+                            ))}
+                        </div>
+                    )}
+
+                    {!loading && papers.length > 0 && pagingInfo.totalPages > 1 && (
+                        <Pagination
+                            currentPage={pagingInfo.currentPage}
+                            totalPages={pagingInfo.totalPages}
+                            onPageChange={(page) => setPagingInfo(prev => ({ ...prev, currentPage: page }))}
+                        />
+                    )}
                 </main>
             </div>
         </div>
