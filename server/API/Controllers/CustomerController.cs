@@ -10,23 +10,20 @@ namespace API.Controllers;
 public class CustomerController(ICustomerService service) : ControllerBase
 {
     /// <summary>
-    /// Retrieves all customers.
+    /// Retrieve all customers.
     /// </summary>
     /// <param name="orders">Include order history if true.</param>
-    /// <returns>A list of customer details.</returns>
+    /// <param name="page">The page number to retrieve.</param>
+    /// <param name="pageSize">The number of items per page.</param>
+    /// <returns>A paged list of customers.</returns>
     [HttpGet]
     [Produces("application/json")]
-    [ProducesResponseType(typeof(List<CustomerDetailViewModel>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<List<CustomerDetailViewModel>>> All([FromQuery] bool orders = false)
+    [ProducesResponseType(typeof(CustomerPagedViewModel), StatusCodes.Status200OK)]
+    public async Task<ActionResult<CustomerPagedViewModel>> All([FromQuery] bool orders = false,
+                                                                [FromQuery, Range(1, int.MaxValue)] int page = 1, 
+                                                                [FromQuery, Range(1, 1000)] int pageSize = 10)
     {
-        if (orders)
-        {
-            return Ok(await service.AllWithOrderHistory());
-        }
-        else
-        {
-            return Ok(await service.All());
-        }
+        return Ok(await service.All(page, pageSize, orders));
     }
 
     /// <summary>

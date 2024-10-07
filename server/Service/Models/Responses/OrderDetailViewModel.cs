@@ -7,13 +7,17 @@ public class OrderDetailViewModel
 {
     [Required]
     public int Id { get; set; }
-    public string? Status { get; set; } // enum?
+    
+    [Required]
+    public string Status { get; set; } = null!;
+    
+    [Required]
     public DateTime OrderDate { get; set; }
+    
     public DateOnly? DeliveryDate { get; set; }
     
     [Required]
     public double TotalPrice { get; set; }
-    
     
     [Required]
     public required IEnumerable<OrderEntryDetailViewModel> Entry { get; set; }

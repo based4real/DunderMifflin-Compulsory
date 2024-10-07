@@ -9,6 +9,8 @@ import HomePage from "./pages/Home";
 import ShopPage from "./pages/Shop";
 import CartPage from "./pages/Cart";
 import AdminProductsPage from "./pages/Admin/Products";
+import OrderPage from "./pages/Order";
+import AdminCustomersPage from "./pages/Admin/Customers";
 
 const App = () => {
   const [theme, setTheme] = useAtom(ThemeAtom);
@@ -26,8 +28,10 @@ const App = () => {
         <Route path="/" element={<HomePage />} />
         <Route path="/shop" element={<ShopPage />} />
         <Route path="/shop/cart" element={<CartPage />} />
+        <Route path="/order/success" element={<OrderPage />} />
 
         <Route path="/admin/products" element={<AdminProductsPage />} />
+        <Route path="/admin/customers" element={<AdminCustomersPage /> } />
       </Routes>
       <CheckBackend />
       </>

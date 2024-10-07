@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { api } from "../http";
 import { ShopSortAtom, ShopProductsAtom, ShopSelectedPropertiesAtom, ShopFilterTypeAtom, ShopDiscontinuedAtom, ShopPagingInfoAtom } from "../atoms/ShopAtoms";
@@ -9,6 +9,8 @@ import ShopFilterPanel from "../components/Shop/ShopFilterPanel";
 import Pagination from "../components/Pagination/Pagination";
 import PageSizeSelector from "../components/Pagination/PageSizeSelector"
 import PageInfoDisplay from "../components/Pagination/PageInfoDisplay";
+import { CartAtom } from "../atoms/CartAtom";
+import { PaperDetailViewModel } from "../Api";
 
 export default function ShopPage() {
     const [isBackendReachable] = useAtom(IsBackendReachableAtom);
@@ -19,7 +21,34 @@ export default function ShopPage() {
     const [filterType, setFilterType] = useAtom(ShopFilterTypeAtom);
     const [discontinued, setDiscontinued] = useAtom(ShopDiscontinuedAtom);
     const [pagingInfo, setPagingInfo] = useAtom(ShopPagingInfoAtom);
-    
+
+    const [cart, setCart] = useAtom(CartAtom);
+
+    const addToCart = useCallback((paper: PaperDetailViewModel, quantity: number) => {
+        const updatedCart = { ...cart };
+        if (!updatedCart.cartEntries)
+            updatedCart.cartEntries = [];
+
+        if (paper.stock === 0)
+            return;
+
+        if (paper.stock < quantity)
+            return;
+
+        if (paper.discontinued)
+            return;
+        
+        const existingEntry = updatedCart.cartEntries.find(entry => entry.paper.id === paper.id);
+        
+        if (existingEntry)
+            existingEntry.quantity += quantity;
+        else
+            updatedCart.cartEntries.push({ paper, quantity });
+        
+        setCart(updatedCart);
+        localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+    }, [cart, setCart]);
+
     useEffect(() => {
         const fetchPapers = async () => {
             if (!isBackendReachable) return;
@@ -90,7 +119,7 @@ export default function ShopPage() {
                             <ShopSortDropDown />
                         </div>
                     </div>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between">
                         <PageInfoDisplay currentPage={pagingInfo.currentPage} pageSize={pagingInfo.itemsPerPage} totalItems={pagingInfo.totalItems} />
                         <PageSizeSelector
                             pageSize={pagingInfo.itemsPerPage}
@@ -103,7 +132,7 @@ export default function ShopPage() {
                             }}
                         />
                     </div>
-
+                    
                     {loading ? (
                         <div className="flex justify-center mt-4">
                             <span className="loading loading-spinner loading-lg"></span>
@@ -115,7 +144,7 @@ export default function ShopPage() {
                     ) : (
                         <div className="grid grid-cols-1 gap-3">
                             {papers.map((paper) => (
-                                <ShopProduct key={paper.id} paper={paper} />
+                                <ShopProduct key={paper.id} paper={paper} addToCart={addToCart} />
                             ))}
                         </div>
                     )}

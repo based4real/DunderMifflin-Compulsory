@@ -9,6 +9,49 @@
  * ---------------------------------------------------------------
  */
 
+export interface CustomerPagedViewModel {
+  customers: CustomerOrderDetailViewModel[];
+  pagingInfo: PagingInfo;
+}
+
+export type CustomerOrderDetailViewModel = CustomerDetailViewModel & {
+  /** @format int32 */
+  totalOrders: number;
+  orders?: OrderDetailViewModel[] | null;
+};
+
+export interface OrderDetailViewModel {
+  /** @format int32 */
+  id: number;
+  /** @minLength 1 */
+  status: string;
+  /**
+   * @format date-time
+   * @minLength 1
+   */
+  orderDate: string;
+  /** @format date */
+  deliveryDate?: string | null;
+  /** @format double */
+  totalPrice: number;
+  entry: OrderEntryDetailViewModel[];
+}
+
+export interface OrderEntryDetailViewModel {
+  /** @format int32 */
+  id: number;
+  /** @format int32 */
+  productId?: number | null;
+  /** @minLength 1 */
+  productName: string;
+  /** @format int32 */
+  quantity: number;
+  /** @format double */
+  price: number;
+  /** @format double */
+  totalPrice: number;
+}
+
 export interface CustomerDetailViewModel {
   /** @format int32 */
   id: number;
@@ -17,6 +60,17 @@ export interface CustomerDetailViewModel {
   address?: string | null;
   phone?: string | null;
   email?: string | null;
+}
+
+export interface PagingInfo {
+  /** @format int32 */
+  totalItems: number;
+  /** @format int32 */
+  itemsPerPage: number;
+  /** @format int32 */
+  currentPage: number;
+  /** @format int32 */
+  totalPages: number;
 }
 
 export interface ProblemDetails {
@@ -33,48 +87,6 @@ export interface ProblemDetails {
 export interface CustomerOrderPagedViewModel {
   customerDetails: CustomerOrderDetailViewModel;
   pagingInfo: PagingInfo;
-}
-
-export type CustomerOrderDetailViewModel = CustomerDetailViewModel & {
-  orders: OrderDetailViewModel[];
-};
-
-export interface OrderDetailViewModel {
-  /** @format int32 */
-  id: number;
-  status?: string | null;
-  /** @format date-time */
-  orderDate?: string;
-  /** @format date */
-  deliveryDate?: string | null;
-  /** @format double */
-  totalPrice: number;
-  entry: OrderEntryDetailViewModel[];
-}
-
-export interface OrderEntryDetailViewModel {
-  /** @format int32 */
-  id: number;
-  /** @format int32 */
-  productId?: number | null;
-  productName?: string | null;
-  /** @format int32 */
-  quantity: number;
-  /** @format double */
-  price: number;
-  /** @format double */
-  totalPrice: number;
-}
-
-export interface PagingInfo {
-  /** @format int32 */
-  totalItems: number;
-  /** @format int32 */
-  itemsPerPage: number;
-  /** @format int32 */
-  currentPage: number;
-  /** @format int32 */
-  totalPages: number;
 }
 
 export interface OrderCreateModel {
@@ -111,7 +123,8 @@ export enum OrderStatus {
 export interface PaperDetailViewModel {
   /** @format int32 */
   id: number;
-  name?: string | null;
+  /** @minLength 1 */
+  name: string;
   discontinued: boolean;
   /** @format int32 */
   stock: number;
@@ -123,7 +136,8 @@ export interface PaperDetailViewModel {
 export interface PaperPropertyDetailViewModel {
   /** @format int32 */
   id: number;
-  name?: string | null;
+  /** @minLength 1 */
+  name: string;
   paperPropertyDetails?: PaperDetailViewModel[] | null;
 }
 
@@ -138,23 +152,26 @@ export interface PaperCreateModel {
    * @min 0
    * @max 2147483647
    */
-  stock?: number;
+  stock: number;
   /**
    * @format double
    * @min 0.01
    */
-  price?: number;
+  price: number;
   propertyIds?: number[] | null;
 }
 
 export interface PaperPropertyCreateModel {
-  /** @minLength 2 */
+  /**
+   * @minLength 2
+   * @maxLength 255
+   */
   name: string;
   papersId?: number[] | null;
 }
 
 export interface PaperPagedViewModel {
-  papers?: PaperDetailViewModel[];
+  papers: PaperDetailViewModel[];
   pagingInfo: PagingInfo;
 }
 
@@ -193,7 +210,8 @@ export interface PaperRestockUpdateModel {
 export interface PaperPropertySummaryViewModel {
   /** @format int32 */
   id: number;
-  name?: string | null;
+  /** @minLength 1 */
+  name: string;
 }
 
 import type { AxiosInstance, AxiosRequestConfig, AxiosResponse, HeadersDefaults, ResponseType } from "axios";
@@ -344,7 +362,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      *
      * @tags Customer
      * @name All
-     * @summary Retrieves all customers.
+     * @summary Retrieve all customers.
      * @request GET:/api/Customer
      */
     all: (
@@ -354,10 +372,26 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @default false
          */
         orders?: boolean;
+        /**
+         * The page number to retrieve.
+         * @format int32
+         * @min 1
+         * @max 2147483647
+         * @default 1
+         */
+        page?: number;
+        /**
+         * The number of items per page.
+         * @format int32
+         * @min 1
+         * @max 1000
+         * @default 10
+         */
+        pageSize?: number;
       },
       params: RequestParams = {},
     ) =>
-      this.request<CustomerDetailViewModel[], any>({
+      this.request<CustomerPagedViewModel, any>({
         path: `/api/Customer`,
         method: "GET",
         query: query,

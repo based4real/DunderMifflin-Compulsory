@@ -1,8 +1,11 @@
 import { FaBox, FaShoppingCart, FaWarehouse } from "react-icons/fa";
 import QuantityInput from "../Input/QuantityInput";
 import { PaperDetailViewModel } from "../../Api";
+import { useState } from "react";
 
-export default function ShopProduct({ paper }: { paper: PaperDetailViewModel }) {
+export default function ShopProduct({ paper, addToCart }: { paper: PaperDetailViewModel, addToCart: (paper: PaperDetailViewModel, quantity: number) => void; }) {
+  const [quantity, setQuantity] = useState<number>(1);
+
   return (
     <div className="border-base-300 bg-base-100 border shadow-lg rounded-box p-6 flex flex-col justify-between h-full">
       <div className="flex justify-between items-start">
@@ -27,9 +30,9 @@ export default function ShopProduct({ paper }: { paper: PaperDetailViewModel }) 
           <div className="flex gap-4 flex-row">
           <label className="input input-bordered w-auto flex items-center gap-2">
           <FaBox />
-          <QuantityInput max={paper.stock} />
+          <QuantityInput max={paper.stock} value={quantity} onChange={setQuantity} />
           </label>
-          <button className="btn btn-primary flex items-center justify-center gap-2">
+          <button disabled={paper.stock === 0} className="btn btn-primary flex items-center justify-center gap-2" onClick={() => addToCart(paper, quantity)}>
             <FaShoppingCart />
             Add to cart
           </button>

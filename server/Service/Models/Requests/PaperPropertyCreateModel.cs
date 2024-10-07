@@ -8,9 +8,9 @@ namespace Service.Models.Requests;
 public class PaperPropertyCreateModel
 {
     [Required]
-    [NotNull]
     [MinLength(2)]
-    public string? name { get; set; }
+    [MaxLength(255)]
+    public string Name { get; set; } = null!;
     
     public List<int>? PapersId { get; set; }
 
@@ -18,7 +18,7 @@ public class PaperPropertyCreateModel
     {
         return new Property
         {
-            PropertyName = name
+            PropertyName = Name
         };
     }
 }
