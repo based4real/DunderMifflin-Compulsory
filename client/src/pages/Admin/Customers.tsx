@@ -1,10 +1,11 @@
 import { FaPlus, FaSearch } from "react-icons/fa";
 import LeftNavigation from "../../components/Admin/LeftNavigation";
-import UserTableItem from "../../components/Admin/UserTableItem";
 import { api } from "../../http";
+import CustomerTableItem from "../../components/Admin/CustomerTableItem";
 
 
-export default function AdminUsersPage() {
+export default function AdminCustomersPage() {
+    
 
     return (
         <div className="min-h-screen flex justify-center p-4 bg-base-200">
@@ -13,7 +14,7 @@ export default function AdminUsersPage() {
             <main className="flex-1 pl-4 pr-4 rounded-box">
             <div className="flex w-auto flex-row items-center">
                 <div className="flex mt-2 justify-center">
-                    <h3 className="font-bold text-2xl mb-2">Users</h3>
+                    <h3 className="font-bold text-2xl mb-2">Customers</h3>
                 </div>
             </div>
             <div className="form-control w-64 pb-2">
@@ -41,7 +42,7 @@ export default function AdminUsersPage() {
                 </thead>
                 <tbody>
                 {Array.from({ length: 5 }, (_, index) => (
-                    <UserTableItem key={index}/>
+                    <CustomerTableItem key={index}/>
                 ))}
                 </tbody>
             </table>

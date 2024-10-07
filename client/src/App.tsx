@@ -8,8 +8,7 @@ import ShopPage from "./pages/Shop";
 import CartPage from "./pages/Cart";
 import AdminProductsPage from "./pages/Admin/Products";
 import OrderPage from "./pages/Order";
-import AdminOrdersPage from "./pages/Admin/Orders";
-import AdminUsersPage from "./pages/Admin/Users";
+import AdminCustomersPage from "./pages/Admin/Customers";
 
 const App = () => {
 
@@ -30,7 +29,7 @@ const App = () => {
         <Route path="/order/success" element={<OrderPage />} />
 
         <Route path="/admin/products" element={<AdminProductsPage />} />
-        <Route path="/admin/users" element={<AdminUsersPage /> } />
+        <Route path="/admin/customers" element={<AdminCustomersPage /> } />
       </Routes>
       </>
   );

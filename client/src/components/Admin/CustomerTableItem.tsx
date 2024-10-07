@@ -1,6 +1,6 @@
 import { FaEdit, FaEye, FaTrash } from "react-icons/fa";
 
-export default function UserTableItem() {
+export default function CustomerTableItem() {
     return (
         <tr>
         <td>
