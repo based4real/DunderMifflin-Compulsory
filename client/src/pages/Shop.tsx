@@ -21,7 +21,6 @@ export default function ShopPage() {
 
     const [cart, setCart] = useAtom(CartAtom);
 
-
     const addToCart = useCallback((paper: PaperDetailViewModel, quantity: number) => {
         const updatedCart = { ...cart };
         if (!updatedCart.cartEntries)
@@ -47,9 +46,7 @@ export default function ShopPage() {
         setCart(updatedCart);
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
     }, [cart, setCart]);
-      
 
-    
     useEffect(() => {
         const { orderBy, sortBy } = sort;
 

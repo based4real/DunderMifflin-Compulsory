@@ -1,12 +1,41 @@
 import { useAtom } from "jotai";
 import ShopCartProduct from "../components/Cart/ShopCartProduct";
 import { CartAtom } from "../atoms/CartAtom";
-import { PaperDetailViewModel } from "../Api";
 import { CartOrderEntry } from "../model/CartModel";
 import { useCallback } from "react";
+import { api } from "../http";
+import { useNavigate } from "react-router-dom";
+import { OrderDetailViewModel } from "../Api";
 
 export default function CartPage() {
     const [cart, setCart] = useAtom(CartAtom);
+    const navigate = useNavigate();
+
+    const placeOrder = () => {
+        const orderEntries = cart.cartEntries.map((entry) => ({
+            productId: entry.paper.id,
+            quantity: entry.quantity,
+        }));
+
+        cart.customerId = 1;
+
+        const orderData = {
+            customerId: cart.customerId,
+            orderEntries: orderEntries,
+        };
+
+        api.order.createOrder(orderData)
+        .then((response) => {
+          const order: OrderDetailViewModel = response.data;          
+          navigate("/order/success", { state: { order } });
+          
+          setCart({ ...cart, cartEntries: [] });
+          localStorage.removeItem('cartItems');
+        })
+        .catch(error => {
+          console.error("Error placing order", error);
+        });
+    };
 
     const removeFromCart = useCallback((order: CartOrderEntry) => {
         const updatedCartEntries = cart.cartEntries.filter(
@@ -48,6 +77,8 @@ export default function CartPage() {
         0
       ) || 0;
 
+    
+
     return (
         <div className="min-h-screen flex justify-center p-4 bg-base-200">
         <div className="flex flex-col lg:flex-row lg:space-x-6 max-w-screen-lg w-full">
@@ -75,7 +106,7 @@ export default function CartPage() {
                 <span>{totalQuantity} Items: 
                     <span className="font-bold"> ${totalFixed}</span>
                 </span>
-                <div className="btn btn-primary">Buy now</div>
+                <div className="btn btn-primary" onClick={() => placeOrder()}>Buy now</div>
                 </div>
             </aside>
             }
