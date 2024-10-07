@@ -3,6 +3,7 @@ import { api } from "../../http";
 import { PaperPropertiesSummaryAtom } from "../../atoms/PaperPropertiesSummaryAtom";
 import { IsBackendReachableAtom } from "../../atoms/IsBackendReachableAtom";
 import {useAtom} from "jotai/index";
+import { FaTimes } from "react-icons/fa"
 
 interface PropertyFilterProps {
     selectedProperties: number[];
@@ -37,9 +38,26 @@ export default function PropertyFilter({ selectedProperties, onPropertiesChange 
         }
     };
 
+    const handleClearFilters = () => {
+        onPropertiesChange([]);
+    };
+
     return (
         <div className="form-control mb-4">
-            <h3 className="font-semibold mb-2">Filter by Properties</h3>
+
+            <div className="flex justify-between items-center mb-2">
+                <h3 className="font-semibold">Filter by Properties</h3>
+                {selectedProperties.length > 0 && (
+                    <button
+                        type="button"
+                        onClick={handleClearFilters}
+                        className="text-sm text-gray-500 hover:text-gray-700 focus:outline-none"
+                    >
+                        <FaTimes />
+                    </button>
+                )}
+            </div>
+            
             {properties.length > 0 ? (
                 properties.map((property) => (
                     <label key={property.id} className="label cursor-pointer">

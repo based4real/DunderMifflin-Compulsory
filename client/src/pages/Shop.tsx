@@ -12,6 +12,7 @@ import PageSizeSelector from "../components/Pagination/PageSizeSelector"
 import PageInfoDisplay from "../components/Pagination/PageInfoDisplay";
 import { CartAtom } from "../atoms/CartAtom";
 import { PaperDetailViewModel } from "../Api";
+import { toast } from "react-hot-toast";
 
 export default function ShopPage() {
     const [isBackendReachable] = useAtom(IsBackendReachableAtom);
@@ -50,6 +51,7 @@ export default function ShopPage() {
         
         setCart(updatedCart);
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+        toast.success(`${quantity} ${paper.name} added to cart!`);
     }, [cart, setCart]);
 
     useEffect(() => {

@@ -2,6 +2,7 @@ import { FaBox, FaShoppingCart, FaWarehouse, FaBan, FaTimesCircle, FaBell } from
 import QuantityInput from "../Input/QuantityInput";
 import { PaperDetailViewModel } from "../../Api";
 import { useState } from "react";
+import { toast } from "react-hot-toast";
 
 export default function ShopProduct({ paper, addToCart }: { paper: PaperDetailViewModel, addToCart: (paper: PaperDetailViewModel, quantity: number) => void; }) {
   const [quantity, setQuantity] = useState<number>(1);
@@ -51,7 +52,13 @@ export default function ShopProduct({ paper, addToCart }: { paper: PaperDetailVi
             <button
                 disabled={paper.discontinued}
                 className="btn btn-primary flex items-center justify-center gap-2"
-                onClick={() => addToCart(paper, quantity)}
+                onClick={() => {
+                  if (paper.stock === 0) {
+                    toast(`You will be notified when ${paper.name} is back in stock.`);
+                  } else {
+                    addToCart(paper, quantity);
+                  }
+                }}
             >
               {paper.stock === 0 ? (
                   <>
