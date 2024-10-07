@@ -34,7 +34,6 @@ export default function ShopPage() {
 
         if (paper.discontinued)
             return;
-
         
         const existingEntry = updatedCart.cartEntries.find(entry => entry.paper.id === paper.id);
         
@@ -101,7 +100,7 @@ export default function ShopPage() {
                             <ShopSortDropDown />
                         </div>
                     </div>
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between">
                         <PageInfoDisplay currentPage={pagingInfo.currentPage} pageSize={pagingInfo.itemsPerPage} totalItems={pagingInfo.totalItems} />
                         <PageSizeSelector
                             pageSize={pagingInfo.itemsPerPage}

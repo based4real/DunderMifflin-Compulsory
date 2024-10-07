@@ -1,5 +1,4 @@
 import { FaWarehouse } from "react-icons/fa";
-import { PaperDetailViewModel } from "../../Api";
 import { CartOrderEntry } from "../../model/CartModel";
 
 export default function ShopCartProduct({order, removeFromCart, updateQuantity}: {order: CartOrderEntry, removeFromCart: (order: CartOrderEntry) => void, updateQuantity: (order: CartOrderEntry, newQuantity: number) => void;}) {

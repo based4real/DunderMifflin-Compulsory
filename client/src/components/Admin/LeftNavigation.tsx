@@ -11,12 +11,7 @@ export default function LeftNavigation() {
     return (
         <aside className="w-64 h-fit mt-12 shadow-md rounded-box lg:-ml-32">
         <ul className="menu menu-lg bg-base-100 border border-base-300 rounded-box w-auto h-fit">
-            <li>
-                <a className={`${isItemActive("/admin/orders")}`}>
-                Orders
-                </a>
-            </li>
-            <li>
+            <li onClick={() => navigate("/admin/users")}>
                 <a className={`${isItemActive("/admin/users")}`}>
                 Users
                 </a>
@@ -25,7 +20,7 @@ export default function LeftNavigation() {
             <details open={location.pathname.startsWith("/admin/products")}>
                 <summary>Products</summary>
                 <ul>
-                    <li>
+                    <li onClick={() => navigate("/admin/products")}>
                         <a className={`${isItemActive("/admin/products")}`}>
                             View all
                         </a>
