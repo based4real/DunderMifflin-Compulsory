@@ -602,6 +602,16 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
          * @default "Or"
          */
         filterType?: FilterType;
+        /**
+         * Optional minimum price to filter products. Null returns all products regardless of minimum price.
+         * @format double
+         */
+        minPrice?: number | null;
+        /**
+         * Optional maximum price to filter products. Null returns all products regardless of maximum price.
+         * @format double
+         */
+        maxPrice?: number | null;
       },
       params: RequestParams = {},
     ) =>

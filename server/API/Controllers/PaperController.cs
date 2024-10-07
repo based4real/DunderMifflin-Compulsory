@@ -58,6 +58,8 @@ public class PaperController(IPaperService service) : ControllerBase
     /// <param name="sortBy">Sorting direction: ascending or descending. Default is <see cref="SortOrder.Asc"/>.</param>
     /// <param name="filter">Comma-separated property IDs to filter by.</param>
     /// <param name="filterType">Specifies whether all (<see cref="FilterType.And"/>) or any (<see cref="FilterType.Or"/>) properties should be matched. Default is <see cref="FilterType.Or"/>.</param>
+    /// <param name="minPrice">Optional minimum price to filter products. Null returns all products regardless of minimum price.</param>
+    /// <param name="maxPrice">Optional maximum price to filter products. Null returns all products regardless of maximum price.</param>
     /// <returns>Paginated list of paper products matching the criteria.</returns>
     /// <response code="200">Returns the paginated list of paper products.</response>
     [HttpGet]
@@ -71,11 +73,13 @@ public class PaperController(IPaperService service) : ControllerBase
         [FromQuery] PaperOrderBy orderBy = PaperOrderBy.Id,
         [FromQuery] SortOrder sortBy = SortOrder.Asc,
         [FromQuery] string? filter = null,
-        [FromQuery] FilterType filterType = FilterType.Or)
+        [FromQuery] FilterType filterType = FilterType.Or,
+        [FromQuery] double? minPrice = null,
+        [FromQuery] double? maxPrice = null)
     {
         var propertyIds = filter?.Split(',').Select(int.Parse).ToList();
         
-        return Ok(await service.AllPaged(page, pageSize, search, discontinued, orderBy, sortBy, propertyIds, filterType));
+        return Ok(await service.AllPaged(page, pageSize, search, discontinued, orderBy, sortBy, propertyIds, filterType, minPrice, maxPrice));
     }
     
     /// <summary>

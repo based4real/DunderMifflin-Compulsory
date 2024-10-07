@@ -12,11 +12,17 @@ export const ShopSelectedPropertiesAtom = atom<number[]>([]);
 
 export const ShopFilterTypeAtom = atom<FilterType>(FilterType.And);
 
-export const ShopDiscontinuedAtom = atom<boolean | null>(null);
+// true = discontinued, false = available, null = all
+export const ShopDiscontinuedAtom = atom<boolean | null>(false);
 
 export const ShopPagingInfoAtom = atom<PagingInfo>({
     currentPage: 1,
     itemsPerPage: 10,
     totalPages: 1,
     totalItems: 0,
+});
+
+export const ShopPriceRangeAtom = atom({
+    minPrice: null as number | null,
+    maxPrice: null as number | null,
 });

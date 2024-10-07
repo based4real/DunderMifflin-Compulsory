@@ -24,7 +24,7 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
     
     public async Task<PaperPagedViewModel> AllPaged(int pageNumber, int itemsPerPage, string? search,
                                                     bool? discontinued, PaperOrderBy orderBy, SortOrder sortOrder,
-                                                    List<int>? propertyIds, FilterType filterType)
+                                                    List<int>? propertyIds, FilterType filterType, double? minPrice, double? maxPrice)
     {
         var query = repository.GetFilteredPapers(discontinued);
 
@@ -38,6 +38,10 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
             if (filterType == FilterType.And) query = query.Where(paper => propertyIds.All(propertyId => paper.Properties.Any(property => property.Id == propertyId)));
             else                              query = query.Where(paper => paper.Properties.Any(property => propertyIds.Contains(property.Id)));
         }
+        
+        // Filter på price range
+        if (minPrice.HasValue) query = query.Where(paper => paper.Price >= minPrice.Value);
+        if (maxPrice.HasValue) query = query.Where(paper => paper.Price <= maxPrice.Value);
         
         // orderBy og groupBy
         var sortedPapers = repository.OrderBy(query, orderBy, sortOrder);

@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { api } from "../http";
-import { ShopSortAtom, ShopProductsAtom, ShopSelectedPropertiesAtom, ShopFilterTypeAtom, ShopDiscontinuedAtom, ShopPagingInfoAtom } from "../atoms/ShopAtoms";
+import { ShopSortAtom, ShopProductsAtom, ShopSelectedPropertiesAtom, ShopFilterTypeAtom, ShopDiscontinuedAtom, ShopPagingInfoAtom, ShopPriceRangeAtom } from "../atoms/ShopAtoms";
 import { IsBackendReachableAtom } from "../atoms/IsBackendReachableAtom";
 import ShopProduct from "../components/Shop/ShopProduct";
+import ShopSkeletonProduct from "../components/Shop/ShopSkeletonProduct";
 import ShopSortDropDown from "../components/Shop/ShopSortDropdown";
 import ShopFilterPanel from "../components/Shop/ShopFilterPanel";
 import Pagination from "../components/Pagination/Pagination";
@@ -21,6 +22,7 @@ export default function ShopPage() {
     const [filterType, setFilterType] = useAtom(ShopFilterTypeAtom);
     const [discontinued, setDiscontinued] = useAtom(ShopDiscontinuedAtom);
     const [pagingInfo, setPagingInfo] = useAtom(ShopPagingInfoAtom);
+    const [priceRange, setPriceRange] = useAtom(ShopPriceRangeAtom);
 
     const [cart, setCart] = useAtom(CartAtom);
 
@@ -65,6 +67,8 @@ export default function ShopPage() {
                     orderBy,
                     sortBy,
                     discontinued,
+                    minPrice: priceRange.minPrice,
+                    maxPrice: priceRange.maxPrice,
                 })
                 .then((response) => {
                     setPapers(response.data.papers ?? []);
@@ -90,7 +94,7 @@ export default function ShopPage() {
         };
 
         fetchPapers();
-    }, [pagingInfo.currentPage, pagingInfo.itemsPerPage, selectedProperties, filterType, sort, discontinued, isBackendReachable]);
+    }, [pagingInfo.currentPage, pagingInfo.itemsPerPage, selectedProperties, filterType, sort, discontinued, priceRange, isBackendReachable]);
     
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -107,6 +111,9 @@ export default function ShopPage() {
                         onFilterTypeChange={setFilterType}
                         selectedProperties={selectedProperties}
                         onPropertiesChange={setSelectedProperties}
+                        minPrice={priceRange.minPrice}
+                        maxPrice={priceRange.maxPrice}
+                        onPriceRangeChange={(min, max) => setPriceRange({ minPrice: min, maxPrice: max })}
                     />
                 </aside>
 
@@ -134,8 +141,10 @@ export default function ShopPage() {
                     </div>
                     
                     {loading ? (
-                        <div className="flex justify-center mt-4">
-                            <span className="loading loading-spinner loading-lg"></span>
+                        <div className="grid grid-cols-1 gap-3">
+                            {[...Array(4)].map((_, index) => (
+                                <ShopSkeletonProduct key={index} />
+                            ))}
                         </div>
                     ) : papers.length === 0 ? (
                         <div className="flex justify-center mt-4">
