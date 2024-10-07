@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import Profile from "./Profile";
 import ShopCart from "./ShopCart";
 import ThemeSwitcher from "./ThemeSwitcher";
-import { FaSearch } from "react-icons/fa";
+import ShopSearch from "./ShopSearch";
 
 export default function Navigation() {
   const navigate = useNavigate();
@@ -28,16 +28,7 @@ export default function Navigation() {
         </div>
 
         <div className="navbar-center w-96 flex-grow">
-          <div className="form-control w-full">
-            <label className="input input-bordered flex items-center gap-2">
-              <input
-                type="text"
-                className="grow"
-                placeholder="Search for a product.."
-              />
-              <FaSearch/>
-            </label>
-          </div>
+          <ShopSearch />
         </div>
 
         <div className="navbar-end flex items-center space-x-4">

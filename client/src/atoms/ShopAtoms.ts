@@ -26,3 +26,5 @@ export const ShopPriceRangeAtom = atom({
     minPrice: null as number | null,
     maxPrice: null as number | null,
 });
+
+export const ShopSearchAtom = atom<string>("");

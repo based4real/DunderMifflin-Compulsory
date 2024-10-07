@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAtom } from "jotai";
 import { api } from "../http";
-import { ShopSortAtom, ShopProductsAtom, ShopSelectedPropertiesAtom, ShopFilterTypeAtom, ShopDiscontinuedAtom, ShopPagingInfoAtom, ShopPriceRangeAtom } from "../atoms/ShopAtoms";
+import { ShopSortAtom, ShopProductsAtom, ShopSelectedPropertiesAtom, ShopFilterTypeAtom, ShopDiscontinuedAtom, ShopPagingInfoAtom, ShopPriceRangeAtom, ShopSearchAtom } from "../atoms/ShopAtoms";
 import { IsBackendReachableAtom } from "../atoms/IsBackendReachableAtom";
 import ShopProduct from "../components/Shop/ShopProduct";
 import ShopSkeletonProduct from "../components/Shop/ShopSkeletonProduct";
@@ -23,6 +23,7 @@ export default function ShopPage() {
     const [discontinued, setDiscontinued] = useAtom(ShopDiscontinuedAtom);
     const [pagingInfo, setPagingInfo] = useAtom(ShopPagingInfoAtom);
     const [priceRange, setPriceRange] = useAtom(ShopPriceRangeAtom);
+    const [searchTerm] = useAtom(ShopSearchAtom);
 
     const [cart, setCart] = useAtom(CartAtom);
 
@@ -69,6 +70,7 @@ export default function ShopPage() {
                     discontinued,
                     minPrice: priceRange.minPrice,
                     maxPrice: priceRange.maxPrice,
+                    search: searchTerm,
                 })
                 .then((response) => {
                     setPapers(response.data.papers ?? []);
@@ -94,7 +96,7 @@ export default function ShopPage() {
         };
 
         fetchPapers();
-    }, [pagingInfo.currentPage, pagingInfo.itemsPerPage, selectedProperties, filterType, sort, discontinued, priceRange, isBackendReachable]);
+    }, [isBackendReachable, pagingInfo.currentPage, pagingInfo.itemsPerPage, selectedProperties, filterType, sort, discontinued, priceRange, searchTerm]);
     
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
