@@ -1,4 +1,5 @@
 ﻿using DataAccess;
+using DataAccess.Models;
 using Microsoft.EntityFrameworkCore;
 using Service.Exceptions;
 using Service.Interfaces;
@@ -9,14 +10,46 @@ namespace Service;
 
 public class CustomerService(AppDbContext context) : ICustomerService
 {
-    public async Task<List<CustomerDetailViewModel>> All()
+    public async Task<CustomerPagedViewModel> All(int pageNumber, int itemsPerPage, bool includeOrderHistory)
     {
-        return await context.Customers
-            .Include(customer => customer.Orders)
-            .Select(customer => CustomerDetailViewModel.FromEntity(customer))
-            .ToListAsync();
-    }
+        IQueryable<Customer> query = context.Customers;
 
+        if (includeOrderHistory)
+        {
+            query = query
+                .Where(o => o.Orders.Count > 0)
+                .Include(c => c.Orders)
+                .ThenInclude(d => d.OrderEntries)
+                .ThenInclude(e => e.Product);
+        }
+        else
+        {
+            query = query.Include(c => c.Orders);
+        }
+
+        var totalItems = await query.CountAsync();
+
+        var pagedCustomers = await query
+            .Skip((pageNumber - 1) * itemsPerPage)
+            .Take(itemsPerPage)
+            .Select(customer => CustomerOrderDetailViewModel.FromEntity(customer, includeOrderHistory))
+            .ToListAsync();
+
+        if (includeOrderHistory && pagedCustomers.Count == 0)
+            throw new NotFoundException("No customers with order history found");
+
+        return new CustomerPagedViewModel
+        {
+            Customers = pagedCustomers,
+            PagingInfo = new PagingInfo
+            {
+                TotalItems = totalItems,
+                ItemsPerPage = itemsPerPage,
+                CurrentPage = pageNumber
+            }
+        };
+    }
+    
     public async Task<CustomerDetailViewModel?> ById(int id)
     {
         var result = await context.Customers
@@ -30,22 +63,7 @@ public class CustomerService(AppDbContext context) : ICustomerService
 
         return result;
     }
-
-    public async Task<List<CustomerOrderDetailViewModel>> AllWithOrderHistory()
-    {
-        var customers = await context.Customers
-            .Where(o => o.Orders.Count > 0)
-            .Include(c => c.Orders)
-            .ThenInclude(d => d.OrderEntries)
-            .ThenInclude(e => e.Product)
-            .Select(customer => CustomerOrderDetailViewModel.FromEntity(customer)).ToListAsync();
-
-        if (customers.Count == 0)
-            throw new NotFoundException("No customers with order history found");
-
-        return customers;
-    }
-
+    
     public async Task<CustomerOrderPagedViewModel> GetPagedOrdersForCustomer(int customerId, int pageNumber, int itemsPerPage)
     {
         var customer = await context.Customers

@@ -10,9 +10,11 @@ public class PaperCreateModel
     [MaxLength(255)]
     public string Name { get; set; } = string.Empty;
 
+    [Required]
     [Range(0, int.MaxValue)]
     public int Stock { get; set; }
 
+    [Required]
     [Range(0.01, double.MaxValue)]
     public double Price { get; set; }
     

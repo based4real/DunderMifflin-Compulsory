@@ -8,7 +8,8 @@ public class PaperDetailViewModel
     [Required]
     public int Id { get; set; }
     
-    public string? Name { get; set; }
+    [Required]
+    public string Name { get; set; } = null!;
     
     [Required]
     public bool Discontinued { get; set; }

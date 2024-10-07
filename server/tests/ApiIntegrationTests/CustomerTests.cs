@@ -63,25 +63,26 @@ public class CustomerTests : WebApplicationFactory<Program>
     public async Task All()
     {
         var client = CreateClient();
-        var expectedCustomers = _pgCtxSetup.DbContextInstance?.Customers?.OrderBy(c => c.Id).ToList();
-        
+        var expectedCustomers = _pgCtxSetup.DbContextInstance?.Customers.OrderBy(c => c.Id).ToList();
+
         Assert.NotNull(expectedCustomers);
         Assert.True(expectedCustomers.Count > 0, "No customers found in database");
 
-        var response = await client.GetAsync("api/customer?orders=false");
+        var response = await client.GetAsync("api/customer?orders=false&page=1&pageSize=10");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        
-        var responseData = await response.Content.ReadFromJsonAsync<List<CustomerDetailViewModel>>();
-        var sortedResponseData = responseData?.OrderBy(c => c.Id).ToList();
-        
-        Assert.NotNull(sortedResponseData);
-        Assert.Equal(expectedCustomers.Count, sortedResponseData.Count);
+
+        var responseData = await response.Content.ReadFromJsonAsync<CustomerPagedViewModel>();
+        Assert.NotNull(responseData);
+
+        var sortedResponseData = responseData.Customers.OrderBy(c => c.Id).ToList();
+
+        Assert.Equal(expectedCustomers.Count, responseData.PagingInfo.TotalItems);
 
         Assert.All(sortedResponseData, expectedCustomer =>
         {
             var actualCustomer = expectedCustomers.Single(c => c.Id == expectedCustomer.Id);
             Assert.NotNull(actualCustomer);
-        
+
             Assert.Equal(expectedCustomer.Id, actualCustomer.Id);
             Assert.Equal(expectedCustomer.Name, actualCustomer.Name);
             Assert.Equal(expectedCustomer.Email, actualCustomer.Email);
@@ -103,14 +104,16 @@ public class CustomerTests : WebApplicationFactory<Program>
         Assert.NotNull(expectedCustomers);
         Assert.True(expectedCustomers.Count > 0, "No customers found in database");
 
-        var response = await client.GetAsync("api/customer?orders=true");
+        var response = await client.GetAsync("api/customer?orders=true&page=1&pageSize=10");
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         
-        var responseData = await response.Content.ReadFromJsonAsync<List<CustomerOrderDetailViewModel>>();
-        var sortedResponseData = responseData?.OrderBy(c => c.Id).ToList();
-        
+        var responseData = await response.Content.ReadFromJsonAsync<CustomerPagedViewModel>();
+    
         Assert.NotNull(responseData);
-        Assert.Equal(expectedCustomers.Count, responseData.Count);
+        var sortedResponseData = responseData?.Customers?.OrderBy(c => c.Id).ToList();
+    
+        Assert.NotNull(sortedResponseData);
+        Assert.Equal(expectedCustomers.Count, sortedResponseData.Count);
 
         Assert.All(sortedResponseData, expectedCustomer =>
         {
@@ -123,7 +126,7 @@ public class CustomerTests : WebApplicationFactory<Program>
             
             // Sorter expected og actual udfra ID for at sikre der ikke er mismatch på ids
             var expectedOrders = expectedCustomer.Orders.OrderBy(o => o.Id).ToList();
-            var actualOrders = actualCustomer.Orders.OrderBy(o => o.Id).ToList();
+            var actualOrders = expectedCustomer.Orders.OrderBy(o => o.Id).ToList();
             
             Assert.Equal(expectedOrders.Count, actualOrders.Count);
             Assert.All(expectedOrders, expectedOrder =>
@@ -137,7 +140,7 @@ public class CustomerTests : WebApplicationFactory<Program>
                 
                 // Sorter expected og actual udfra ID for at sikre der ikke er mismatch på ids
                 var expectedEntries = expectedOrder.Entry.OrderBy(e => e.Id).ToList();
-                var actualEntries = actualOrder.OrderEntries.OrderBy(e => e.Id).ToList();
+                var actualEntries = actualOrder.Entry.OrderBy(e => e.Id).ToList();
 
                 Assert.Equal(expectedEntries.Count, actualEntries.Count);
                 Assert.All(expectedEntries, expectedEntry =>
@@ -151,6 +154,9 @@ public class CustomerTests : WebApplicationFactory<Program>
                 });
             });
         });
+        
+        Assert.NotNull(responseData.PagingInfo);
+        Assert.Equal(expectedCustomers.Count, responseData.PagingInfo.TotalItems);
     }
     
     [Fact]

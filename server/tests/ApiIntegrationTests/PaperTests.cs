@@ -29,7 +29,7 @@ public class PaperTests : WebApplicationFactory<Program>
         
         var createPropertyModel = new PaperPropertyCreateModel
         {
-            name = "A4"
+            Name = "A4"
         };
         
         var response = await client.PostAsJsonAsync("api/paper/property", createPropertyModel);
@@ -39,7 +39,7 @@ public class PaperTests : WebApplicationFactory<Program>
         
         Assert.NotNull(responseData);
         Assert.NotEqual(0, responseData.Id);
-        Assert.True(responseData.Name == createPropertyModel.name);
+        Assert.True(responseData.Name == createPropertyModel.Name);
 
         Assert.True(responseData.PaperPropertyDetails?.Count == 0);
     }
@@ -72,7 +72,7 @@ public class PaperTests : WebApplicationFactory<Program>
         
         var createPropertyModel = new PaperPropertyCreateModel
         {
-            name = "A5",
+            Name = "A5",
             PapersId = paperDbList.Select(p => p.Id).ToList()
         };
         
@@ -83,7 +83,7 @@ public class PaperTests : WebApplicationFactory<Program>
         
         Assert.NotNull(responseData);
         Assert.NotEqual(0, responseData.Id);
-        Assert.True(responseData.Name == createPropertyModel.name);
+        Assert.True(responseData.Name == createPropertyModel.Name);
 
         Assert.NotNull(responseData.PaperPropertyDetails);
         Assert.NotEmpty(responseData.PaperPropertyDetails);
@@ -447,7 +447,7 @@ public class PaperTests : WebApplicationFactory<Program>
         // Lav ny property
         var createPropertyModel = new PaperPropertyCreateModel
         {
-            name = "Recycled Kartoffel"
+            Name = "Recycled Kartoffel"
         };
     
         var propertyResponse = await client.PostAsJsonAsync("api/paper/property", createPropertyModel);
@@ -496,8 +496,8 @@ public class PaperTests : WebApplicationFactory<Program>
         var client = CreateClient();
 
         // Opret properties
-        var createPropertyModel1 = new PaperPropertyCreateModel { name = "Recycled COLA" };
-        var createPropertyModel2 = new PaperPropertyCreateModel { name = "Glossy KAKAO" };
+        var createPropertyModel1 = new PaperPropertyCreateModel { Name = "Recycled COLA" };
+        var createPropertyModel2 = new PaperPropertyCreateModel { Name = "Glossy KAKAO" };
 
         var propertyResponse1 = await client.PostAsJsonAsync("api/paper/property", createPropertyModel1);
         var propertyResponse2 = await client.PostAsJsonAsync("api/paper/property", createPropertyModel2);
@@ -555,8 +555,8 @@ public class PaperTests : WebApplicationFactory<Program>
         var client = CreateClient();
 
         // Lav properties
-        var createPropertyModel1 = new PaperPropertyCreateModel { name = "Recycled COLA" };
-        var createPropertyModel2 = new PaperPropertyCreateModel { name = "Glossy KAKAO" };
+        var createPropertyModel1 = new PaperPropertyCreateModel { Name = "Recycled COLA" };
+        var createPropertyModel2 = new PaperPropertyCreateModel { Name = "Glossy KAKAO" };
 
         var propertyResponse1 = await client.PostAsJsonAsync("api/paper/property", createPropertyModel1);
         var propertyResponse2 = await client.PostAsJsonAsync("api/paper/property", createPropertyModel2);
@@ -641,8 +641,8 @@ public class PaperTests : WebApplicationFactory<Program>
         var client = CreateClient();
         
         // Lav properties
-        var createPropertyModel1 = new PaperPropertyCreateModel { name = "Banana Scented", PapersId = new List<int> { paperId1 } };
-        var createPropertyModel2 = new PaperPropertyCreateModel { name = "Unicorn Sparkles", PapersId = new List<int> { paperId2 } };
+        var createPropertyModel1 = new PaperPropertyCreateModel { Name = "Banana Scented", PapersId = new List<int> { paperId1 } };
+        var createPropertyModel2 = new PaperPropertyCreateModel { Name = "Unicorn Sparkles", PapersId = new List<int> { paperId2 } };
 
         var propertyResponse1 = await client.PostAsJsonAsync("api/paper/property", createPropertyModel1);
         var propertyResponse2 = await client.PostAsJsonAsync("api/paper/property", createPropertyModel2);
@@ -1249,8 +1249,8 @@ public class PaperTests : WebApplicationFactory<Program>
         var client = CreateClient();
 
         // Create properties
-        var createPropertyModel1 = new PaperPropertyCreateModel { name = "Recycled" };
-        var createPropertyModel2 = new PaperPropertyCreateModel { name = "Glossy" };
+        var createPropertyModel1 = new PaperPropertyCreateModel { Name = "Recycled" };
+        var createPropertyModel2 = new PaperPropertyCreateModel { Name = "Glossy" };
 
         var propertyResponse1 = await client.PostAsJsonAsync("api/paper/property", createPropertyModel1);
         var propertyResponse2 = await client.PostAsJsonAsync("api/paper/property", createPropertyModel2);
