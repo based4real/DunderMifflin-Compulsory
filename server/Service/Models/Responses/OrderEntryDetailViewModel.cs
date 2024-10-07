@@ -7,8 +7,11 @@ public class OrderEntryDetailViewModel
 {
     [Required]
     public int Id { get; set; }
+    
     public int? ProductId { get; set; }
-    public string? ProductName { get; set; }
+    
+    [Required]
+    public string ProductName { get; set; } = null!;
     
     [Required]
     public int Quantity { get; set; }

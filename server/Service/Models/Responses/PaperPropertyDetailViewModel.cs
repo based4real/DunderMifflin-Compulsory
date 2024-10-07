@@ -8,7 +8,9 @@ public class PaperPropertyDetailViewModel
 {
     [Required]
     public int Id { get; set; }
-    public string? Name { get; set; }
+    
+    [Required]
+    public string Name { get; set; } = null!;
     
     [JsonProperty(NullValueHandling = NullValueHandling.Ignore)] // Ignorer denne hvis værdi er null
     public List<PaperDetailViewModel>? PaperPropertyDetails { get; set; }
