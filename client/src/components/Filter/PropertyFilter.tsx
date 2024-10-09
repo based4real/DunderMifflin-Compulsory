@@ -1,8 +1,4 @@
-import { useEffect } from "react";
-import { api } from "../../http";
-import { PaperPropertiesSummaryAtom } from "../../atoms/PaperPropertiesSummaryAtom";
-import { IsBackendReachableAtom } from "../../atoms/IsBackendReachableAtom";
-import {useAtom} from "jotai/index";
+import { useFetchProperties } from '../../hooks/useFetchProperties'
 import { FaTimes } from "react-icons/fa"
 
 interface PropertyFilterProps {
@@ -11,25 +7,8 @@ interface PropertyFilterProps {
 }
 
 export default function PropertyFilter({ selectedProperties, onPropertiesChange }: PropertyFilterProps) {
-    const [isBackendReachable] = useAtom(IsBackendReachableAtom);
-    const [properties, setProperties] = useAtom(PaperPropertiesSummaryAtom);
-
-    useEffect(() => {
-        const fetchProperties = async () => {
-            if (!isBackendReachable) return;
-
-            api.paper.allProperties()
-                .then((response) => {
-                    setProperties(response.data ?? []);
-                })
-                .catch((error) => {
-                    console.error("Error fetching properties: ", error);
-                });
-        };
-
-        fetchProperties();
-    }, [isBackendReachable]);
-
+    const properties = useFetchProperties();
+    
     const handleCheckboxChange = (propertyId: number) => {
         if (selectedProperties.includes(propertyId)) {
             onPropertiesChange(selectedProperties.filter(id => id !== propertyId));

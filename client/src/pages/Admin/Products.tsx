@@ -1,31 +1,11 @@
+import { useState } from 'react';
 import { FaPlus } from "react-icons/fa";
 import LeftNavigation from "../../components/Admin/LeftNavigation";
 import ProductTableItem from "../../components/Admin/ProductTableItem";
-import { api } from '../../http';
-import { PaperCreateModel } from "../../Api";
-import { toast } from "react-hot-toast";
-import { useErrorHandler } from '../../hooks/useErrorHandler';
+import CreateProductModal from "../../components/Admin/CreateProductModal";
 
 export default function AdminProductsPage() {
-    const { handleError } = useErrorHandler();
-
-    const handleCreatePaper = () => {
-        const paperData: PaperCreateModel[] = [
-            {
-                name: 'PAnda',
-                stock: 23,
-                price: 540.94949494,
-                propertyIds: [1, 2, 3, 4],
-            },
-        ];
-
-        api.paper.createPapers(paperData)
-            .then(response => {
-                console.log('Success:', response);
-                toast.success('Paper created successfully');
-            })
-            .catch(handleError); 
-    };
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
         <div className="min-h-screen flex justify-center p-4 bg-base-200">
@@ -37,7 +17,7 @@ export default function AdminProductsPage() {
                             <h3 className="font-bold text-2xl mb-2">Products</h3>
                         </div>
                         <div className="flex w-full justify-end">
-                            <button className="btn btn-sm btn-primary" onClick={handleCreatePaper}>
+                            <button className="btn btn-sm btn-primary" onClick={() => setIsModalOpen(true)}>
                                 <FaPlus />
                             </button>
                         </div>
@@ -77,6 +57,11 @@ export default function AdminProductsPage() {
                     </div>
                 </main>
             </div>
+
+            <CreateProductModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
         </div>
     );
 }
