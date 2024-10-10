@@ -1,22 +1,23 @@
 import { api } from "../../http";
 import { useEffect, useState } from "react";
-import { useAtom } from "jotai";
-import { CustomerDetailViewModel, CustomerOrderPagedViewModel, CustomerPagedViewModel } from "../../Api";
 import { useParams } from "react-router-dom";
 import LeftNavigation from "../../components/Admin/LeftNavigation";
-import { FaSearch } from "react-icons/fa";
 import CustomerOrderTableItem from "../../components/Admin/CustomerOrderTableItem";
 import Pagination from "../../components/Pagination/Pagination";
 import PageInfoDisplay from "../../components/Pagination/PageInfoDisplay";
 import PageSizeSelector from "../../components/Pagination/PageSizeSelector";
-
+import UpdateOrderStatusModal from "../../components/Admin/UpdateOrderStatusModal";
+import { CustomerOrderPagedViewModel, OrderStatus } from "../../Api";
 
 export default function AdminCustomerDetailsPage() {
     const [customer, setCustomer] = useState<CustomerOrderPagedViewModel | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
-
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+    const [currentStatus, setCurrentStatus] = useState<OrderStatus | null>(null);
+    const [refresh, setRefresh] = useState(false);
     const { id } = useParams();
 
     useEffect(() => {
@@ -34,11 +35,25 @@ export default function AdminCustomerDetailsPage() {
                 console.error("Error fetching customer details: ", error);
             });
         }
-    }, [id, currentPage, itemsPerPage]);
+    }, [id, currentPage, itemsPerPage, refresh]);
 
     const handlePageChange = (page: number) => {
         if (page >= 1 && page <= totalPages)
             setCurrentPage(page);
+    };
+
+    const openModal = (orderId: number, status: OrderStatus) => {
+        setSelectedOrderId(orderId);
+        setCurrentStatus(status);
+        setIsModalOpen(true);
+        setRefresh(prev => !prev);
+    };
+
+    const closeModal = () => {
+        setIsModalOpen(false);
+        setSelectedOrderId(null);
+        setCurrentStatus(null);
+        setRefresh(prev => !prev);
     };
 
     return (
@@ -78,10 +93,16 @@ export default function AdminCustomerDetailsPage() {
                 <tbody>
                 {customer?.customerDetails?.orders?.length ? (
                     customer.customerDetails.orders.map((order, index) => (
-                        <CustomerOrderTableItem key={index} order={order}/>
+                        <CustomerOrderTableItem key={index} 
+                                                order={order} 
+                                                onEditStatus={() => openModal(order.id, order.status as OrderStatus)}/>
                     ))
                     ) : (
-                        <strong>No orders available</strong>
+                        <tr>
+                            <td colSpan={7} className="text-center">
+                                <strong>No orders available</strong>
+                            </td>
+                        </tr>
                     )}
                 </tbody>
             </table>
@@ -94,6 +115,15 @@ export default function AdminCustomerDetailsPage() {
             </div>
             </main>
         </div>
+
+            {selectedOrderId && currentStatus && (
+                <UpdateOrderStatusModal
+                    isOpen={isModalOpen}
+                    onClose={closeModal}
+                    orderId={selectedOrderId}
+                    currentStatus={currentStatus}
+                />
+            )}
         </div>
     )
 }
