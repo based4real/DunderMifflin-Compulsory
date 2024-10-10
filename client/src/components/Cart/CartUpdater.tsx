@@ -15,7 +15,7 @@ export default function CartUpdater() {
             const paperIds = cart.cartEntries.map((entry) => entry.paper.id);
 
             try {
-                const response = await api.paper.getPapersByIds(paperIds);
+                const response = await api.paper.getByIds(paperIds);
                 const latestPapers = response.data;
 
                 const updatedCartEntries = cart.cartEntries
