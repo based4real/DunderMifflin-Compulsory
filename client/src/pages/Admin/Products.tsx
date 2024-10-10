@@ -15,19 +15,14 @@ import { CartAtom } from '../../atoms/CartAtom';
 import { PaperOrderBy, SortOrder } from "../../Api";
 
 export default function AdminProductsPage() {
-    // Modals
     const [isCreateProductModalOpen, setIsCreateProductModalOpen] = useState(false);
     const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
     const [restockProductId, setRestockProductId] = useState<number[] | null>(null);
     const [restockProductName, setRestockProductName] = useState<string>("");
-
-    // Pagination og søgning
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
     const [searchTerm, setSearchTerm] = useState("");
     const [refresh, setRefresh] = useState(false);
-
-    // Cart
     const [cart, setCart] = useAtom(CartAtom);
     
     const { papers, loading, totalPages } = useFetchPapers({
@@ -53,7 +48,11 @@ export default function AdminProductsPage() {
         resetSelection();
     };
 
-    const closeCreateProductModal = () => setIsCreateProductModalOpen(false);
+    const closeCreateProductModal = () => { 
+        setIsCreateProductModalOpen(false);
+        refreshProducts();
+    };
+    
     const closeRestockModal = () => {
         setIsRestockModalOpen(false);
         refreshProducts();

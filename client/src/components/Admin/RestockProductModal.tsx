@@ -40,7 +40,7 @@ export default function RestockProductModal({ isOpen, onClose, productIds, produ
     if (!isOpen) return null;
 
     return (
-        <Modal title={`Restock ${productNames}`} onClose={onClose}>
+        <Modal title={productIds.length === 1 ? `Restock ${productNames}` : "Restock products"} onClose={onClose}>
             <div className="flex flex-col space-y-4">
                 <label className="input input-bordered flex items-center gap-2">
                     <span>Amount</span>
