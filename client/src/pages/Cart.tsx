@@ -3,6 +3,7 @@ import ShopCartProduct from "../components/Cart/ShopCartProduct";
 import { CartAtom } from "../atoms/CartAtom";
 import { CartOrderEntry } from "../model/CartModel";
 import { useCallback } from "react";
+import CartUpdater from "../components/Cart/CartUpdater";
 import { api } from "../http";
 import { useNavigate } from "react-router-dom";
 import { OrderDetailViewModel } from "../Api";
@@ -10,7 +11,7 @@ import { OrderDetailViewModel } from "../Api";
 export default function CartPage() {
     const [cart, setCart] = useAtom(CartAtom);
     const navigate = useNavigate();
-
+    
     const placeOrder = () => {
         const orderEntries = cart.cartEntries.map((entry) => ({
             productId: entry.paper.id,
@@ -77,9 +78,9 @@ export default function CartPage() {
         0
       ) || 0;
 
-    
-
     return (
+    <>
+        <CartUpdater />
         <div className="min-h-screen flex justify-center p-4 bg-base-200">
         <div className="flex flex-col lg:flex-row lg:space-x-6 max-w-screen-lg w-full">
             <main className="flex-1 pl-4 rounded-box">
@@ -112,5 +113,6 @@ export default function CartPage() {
             }
         </div>
         </div>
+    </>
     )
 }

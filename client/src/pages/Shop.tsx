@@ -1,8 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useAtom } from "jotai";
-import { api } from "../http";
-import { ShopSortAtom, ShopProductsAtom, ShopSelectedPropertiesAtom, ShopFilterTypeAtom, ShopDiscontinuedAtom, ShopPagingInfoAtom, ShopPriceRangeAtom, ShopSearchAtom } from "../atoms/ShopAtoms";
-import { IsBackendReachableAtom } from "../atoms/IsBackendReachableAtom";
+import { ShopSortAtom, ShopSelectedPropertiesAtom, ShopFilterTypeAtom, ShopDiscontinuedAtom, ShopPagingInfoAtom, ShopPriceRangeAtom, ShopSearchAtom } from "../atoms/ShopAtoms";
 import ShopProduct from "../components/Shop/ShopProduct";
 import ShopSkeletonProduct from "../components/Shop/ShopSkeletonProduct";
 import ShopSortDropDown from "../components/Shop/ShopSortDropdown";
@@ -13,18 +11,29 @@ import PageInfoDisplay from "../components/Pagination/PageInfoDisplay";
 import { CartAtom } from "../atoms/CartAtom";
 import { PaperDetailViewModel } from "../Api";
 import { toast } from "react-hot-toast";
+import { useFetchPapers } from "../hooks/useFetchPapers";
 
 export default function ShopPage() {
-    const [isBackendReachable] = useAtom(IsBackendReachableAtom);
-    const [loading, setLoading] = useState(false);
     const [sort] = useAtom(ShopSortAtom);
-    const [papers, setPapers] = useAtom(ShopProductsAtom);
     const [selectedProperties, setSelectedProperties] = useAtom(ShopSelectedPropertiesAtom);
     const [filterType, setFilterType] = useAtom(ShopFilterTypeAtom);
     const [discontinued, setDiscontinued] = useAtom(ShopDiscontinuedAtom);
     const [pagingInfo, setPagingInfo] = useAtom(ShopPagingInfoAtom);
     const [priceRange, setPriceRange] = useAtom(ShopPriceRangeAtom);
     const [searchTerm] = useAtom(ShopSearchAtom);
+
+    const { papers, loading, totalPages, totalItems  } = useFetchPapers({
+        page: pagingInfo.currentPage,
+        pageSize: pagingInfo.itemsPerPage,
+        search: searchTerm,
+        discontinued,
+        orderBy: sort.orderBy,
+        sortBy: sort.sortBy,
+        filter: selectedProperties.join(","),
+        filterType,
+        minPrice: priceRange.minPrice,
+        maxPrice: priceRange.maxPrice,
+    });
 
     const [cart, setCart] = useAtom(CartAtom);
 
@@ -53,52 +62,6 @@ export default function ShopPage() {
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
         toast.success(`${quantity} ${paper.name} added to cart!`);
     }, [cart, setCart]);
-
-    useEffect(() => {
-        const fetchPapers = async () => {
-            if (!isBackendReachable) return;
-
-            setLoading(true);
-            const { orderBy, sortBy } = sort;
-
-            api.paper
-                .all({
-                    page: pagingInfo.currentPage,
-                    pageSize: pagingInfo.itemsPerPage,
-                    filter: selectedProperties.join(","),
-                    filterType,
-                    orderBy,
-                    sortBy,
-                    discontinued,
-                    minPrice: priceRange.minPrice,
-                    maxPrice: priceRange.maxPrice,
-                    search: searchTerm,
-                })
-                .then((response) => {
-                    setPapers(response.data.papers ?? []);
-                    setPagingInfo((prev) => ({
-                        ...prev,
-                        totalPages: response.data.pagingInfo?.totalPages ?? 1,
-                        totalItems: response.data.pagingInfo?.totalItems ?? 0,
-                    }));
-
-                    if (pagingInfo.currentPage > (response.data.pagingInfo?.totalPages ?? 1)) {
-                        setPagingInfo((prev) => ({
-                            ...prev,
-                            currentPage: 1,
-                        }));
-                    }
-                })
-                .catch((error) => {
-                    console.error("Error fetching papers: ", error);
-                })
-                .finally(() => {
-                    setLoading(false);
-                });
-        };
-
-        fetchPapers();
-    }, [isBackendReachable, pagingInfo.currentPage, pagingInfo.itemsPerPage, selectedProperties, filterType, sort, discontinued, priceRange, searchTerm]);
     
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -131,7 +94,7 @@ export default function ShopPage() {
                         </div>
                     </div>
                     <div className="flex items-center justify-between">
-                        <PageInfoDisplay currentPage={pagingInfo.currentPage} pageSize={pagingInfo.itemsPerPage} totalItems={pagingInfo.totalItems} />
+                        <PageInfoDisplay currentPage={pagingInfo.currentPage} pageSize={pagingInfo.itemsPerPage} totalItems={totalItems} />
                         <PageSizeSelector
                             pageSize={pagingInfo.itemsPerPage}
                             onPageSizeChange={(size) => {
@@ -162,10 +125,10 @@ export default function ShopPage() {
                         </div>
                     )}
 
-                    {!loading && papers.length > 0 && pagingInfo.totalPages > 1 && (
+                    {!loading && papers.length > 0 && totalPages > 1 && (
                         <Pagination
                             currentPage={pagingInfo.currentPage}
-                            totalPages={pagingInfo.totalPages}
+                            totalPages={totalPages}
                             onPageChange={(page) => setPagingInfo(prev => ({ ...prev, currentPage: page }))}
                         />
                     )}

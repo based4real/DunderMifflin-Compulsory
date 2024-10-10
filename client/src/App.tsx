@@ -5,6 +5,7 @@ import { Routes, Route } from 'react-router-dom';
 import Navigation from "./components/Navigation/Navigation";
 import DaisyToaster from "./components/Feedback/DaisyToaster";
 import CheckBackend from "./components/Feedback/CheckBackend";
+import CartUpdater from './components/Cart/CartUpdater';
 import HomePage from "./pages/Home";
 import ShopPage from "./pages/Shop";
 import CartPage from "./pages/Cart";
@@ -24,6 +25,7 @@ const App = () => {
     <>
     <Navigation/>
       <DaisyToaster />
+      <CartUpdater />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/shop" element={<ShopPage />} />

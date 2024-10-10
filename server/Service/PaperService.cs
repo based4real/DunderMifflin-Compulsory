@@ -237,4 +237,16 @@ public class PaperService(AppDbContext context, IPaperRepository repository) : I
                             .Select(property => PaperPropertySummaryViewModel.FromEntity(property))
                             .ToListAsync();
     }
+
+    public async Task<List<PaperDetailViewModel>> GetPapersByIds(List<int> paperIds)
+    {
+        var uniqueIds = paperIds.Distinct().ToList();
+
+        var papers = await context.Papers
+                                  .Include(p => p.Properties)
+                                  .Where(p => uniqueIds.Contains(p.Id))
+                                  .ToListAsync();
+
+        return papers.Select(PaperDetailViewModel.FromEntity).ToList();
+    }
 }

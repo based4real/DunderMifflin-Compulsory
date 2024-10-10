@@ -733,5 +733,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         type: ContentType.Json,
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags Paper
+     * @name GetPapersByIds
+     * @request POST:/api/Paper/getByIds
+     */
+    getPapersByIds: (data: number[], params: RequestParams = {}) =>
+      this.request<PaperDetailViewModel[], any>({
+        path: `/api/Paper/getByIds`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
   };
 }

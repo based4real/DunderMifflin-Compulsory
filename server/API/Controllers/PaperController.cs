@@ -178,4 +178,12 @@ public class PaperController(IPaperService service) : ControllerBase
     {
         return Ok(await service.AllProperties());
     }
+    
+    [HttpPost("getByIds")]
+    [Produces("application/json")]
+    [ProducesResponseType(typeof(List<PaperDetailViewModel>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<List<PaperDetailViewModel>>> GetPapersByIds([FromBody] List<int> paperIds)
+    {
+        return Ok(await service.GetPapersByIds(paperIds));
+    }
 }

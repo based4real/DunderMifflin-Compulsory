@@ -17,4 +17,5 @@ public interface IPaperService
     public Task Discontinue(List<int> ids);
     public Task Restock(List<PaperRestockUpdateModel> restockModels);
     public Task<List<PaperPropertySummaryViewModel>> AllProperties();
+    public Task<List<PaperDetailViewModel>> GetPapersByIds(List<int> paperIds);
 }
