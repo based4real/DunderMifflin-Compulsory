@@ -9,6 +9,7 @@ import CartPage from "./pages/Cart";
 import AdminProductsPage from "./pages/Admin/Products";
 import OrderPage from "./pages/Order";
 import AdminCustomersPage from "./pages/Admin/Customers";
+import AdminCustomerDetailsPage from "./pages/Admin/CustomerDetailsPage";
 
 const App = () => {
 
@@ -30,6 +31,8 @@ const App = () => {
 
         <Route path="/admin/products" element={<AdminProductsPage />} />
         <Route path="/admin/customers" element={<AdminCustomersPage /> } />
+        <Route path="/admin/customers/:id" element={<AdminCustomerDetailsPage />} />
+
       </Routes>
       </>
   );

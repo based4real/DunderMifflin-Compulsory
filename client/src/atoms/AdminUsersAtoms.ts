@@ -1,7 +1,7 @@
 import { atom } from "jotai";
-import { CustomerDetailViewModel, PagingInfo } from "../Api";
+import { CustomerPagedViewModel, PagingInfo } from "../Api";
 
-export const AdminCustomerAtom = atom<CustomerDetailViewModel[]>([]);
+export const AdminCustomerAtom = atom<CustomerPagedViewModel>();
 
 export const AdminCustomerPagingInfoAtom = atom<PagingInfo>({
     currentPage: 1,

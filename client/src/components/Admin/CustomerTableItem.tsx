@@ -1,28 +1,33 @@
 import { FaEdit, FaEye, FaTrash } from "react-icons/fa";
+import { CustomerOrderDetailViewModel } from "../../Api";
+import { useNavigate } from "react-router-dom";
 
-export default function CustomerTableItem() {
+export default function CustomerTableItem({ customer }: { customer: CustomerOrderDetailViewModel }) {
+    const navigate = useNavigate();
+
+    const handleViewClick = () => {
+        navigate(`/admin/customers/${customer.id}`);
+    };
+
     return (
         <tr>
         <td>
         <div>
-              <div className="font-bold">Hart Hagerty</div>
-              <div className="text-sm opacity-50">Sold: 2329</div>
+              <div className="font-bold">{customer.name}</div>
+              <div className="tooltip" data-tip={customer.email}>
+                <div className="text-sm opacity-50 max-w-48 truncate">{customer.email}</div>
+              </div>
             </div>
         </td>
         <td>
-        Bulletproof
+        {customer.phone}
         <br />
-        <div className="tooltip" data-tip="A4, Waterproof, Fireproof">
-            <span className="badge badge-neutral cursor-pointer badge-sm">+5 others</span>
-        </div>
+            <span className="badge badge-neutral cursor-pointer badge-sm">{customer.address}</span>
         </td>
-        <td>50</td>
-        <td>$29.99</td>
+        <td>{customer.totalOrders}</td>
         <th className="text-right">
         <div className="join join-vertical lg:join-horizontal">
-            <button className="btn text-primary join-item"><FaEye/></button>
-            <button className="btn text-primary join-item"><FaEdit/></button>
-            <button className="btn text-primary join-item"><FaTrash/></button>
+            <button className="btn text-primary join-item" onClick={handleViewClick}><FaEye/></button>
         </div>
         </th>
     </tr>

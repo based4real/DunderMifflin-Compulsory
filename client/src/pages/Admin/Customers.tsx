@@ -2,10 +2,41 @@ import { FaPlus, FaSearch } from "react-icons/fa";
 import LeftNavigation from "../../components/Admin/LeftNavigation";
 import { api } from "../../http";
 import CustomerTableItem from "../../components/Admin/CustomerTableItem";
+import { useEffect } from "react";
+import { useAtom } from "jotai";
+import { AdminCustomerAtom, AdminCustomerPagingInfoAtom } from "../../atoms/AdminUsersAtoms";
+import { CustomerPagedViewModel } from "../../Api";
+import Pagination from "../../components/Pagination/Pagination";
+import PageInfoDisplay from "../../components/Pagination/PageInfoDisplay";
+import PageSizeSelector from "../../components/Pagination/PageSizeSelector";
 
 
 export default function AdminCustomersPage() {
-    
+    const [customers, setCustomers] = useAtom(AdminCustomerAtom);
+    const [pagingInfo, setPagingInfo] = useAtom(AdminCustomerPagingInfoAtom);
+
+    useEffect(() => {
+        api.customer.all({orders: true,
+                           page: pagingInfo.currentPage,
+                           pageSize: pagingInfo.itemsPerPage
+                        })
+                    .then(response => {
+                        const customerPagedViewModel: CustomerPagedViewModel = {
+                            customers: response.data.customers ?? [],
+                            pagingInfo: response.data.pagingInfo ?? {
+                                currentPage: pagingInfo.currentPage,
+                                itemsPerPage: pagingInfo.itemsPerPage,
+                                totalPages: pagingInfo.totalPages,
+                                totalItems: pagingInfo.totalItems
+                            }
+                        };
+                        setPagingInfo(customerPagedViewModel.pagingInfo)
+                        setCustomers(customerPagedViewModel);
+                    })
+                .catch(error => {
+                    console.error('Error fetching customers:', error);
+                });
+    }, [pagingInfo.currentPage, pagingInfo.itemsPerPage]);
 
     return (
         <div className="min-h-screen flex justify-center p-4 bg-base-200">
@@ -17,44 +48,42 @@ export default function AdminCustomersPage() {
                     <h3 className="font-bold text-2xl mb-2">Customers</h3>
                 </div>
             </div>
-            <div className="form-control w-64 pb-2">
-                <label className="input input-bordered flex items-center gap-2">
-                <input
-                    type="text"
-                    className="grow"
-                    placeholder="Search.."
+            <div className="flex items-center justify-between">
+                <PageInfoDisplay currentPage={pagingInfo.currentPage} pageSize={pagingInfo.itemsPerPage} totalItems={pagingInfo.totalPages} />
+                <PageSizeSelector
+                    pageSize={pagingInfo.itemsPerPage}
+                    onPageSizeChange={(size) => {
+                        setPagingInfo(prev => ({
+                            ...prev,
+                            itemsPerPage: size,
+                            currentPage: 1,
+                        }));
+                    }}
                 />
-                <FaSearch/>
-                </label>
             </div>
             <div className="grid grid-cols-1 gap-3">
             <div className="overflow-x-auto rounded-box border border-base-300 bg-base-100 p-0">
                 <table className="table w-full">
                 <thead>
                 <tr>
-                    <th>Name</th>
                     <th>Customer</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Orders</th>
+                    <th>Contact</th>
+                    <th>Total orders</th>
                     <th></th>
                 </tr>
                 </thead>
                 <tbody>
-                {Array.from({ length: 5 }, (_, index) => (
-                    <CustomerTableItem key={index}/>
+                {customers?.customers.map((customer, index) => (
+                    <CustomerTableItem key={index} customer={customer}/>
                 ))}
                 </tbody>
             </table>
             </div>
-            <div className="flex justify-center align-middle">
-                <div className="flex join">
-                <button className="join-item btn bg-base-100">1</button>
-                <button className="join-item btn btn-active">2</button>
-                <button className="join-item btn bg-base-100">3</button>
-                <button className="join-item btn bg-base-100">4</button>
-                </div>
-            </div>
+            <Pagination
+                    currentPage={pagingInfo.currentPage}
+                    totalPages={pagingInfo.totalPages}
+                    onPageChange={(page) => setPagingInfo(prev => ({ ...prev, currentPage: page }))}
+                />
             </div>
             </main>
         </div>
