@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { FaWarehouse, FaDollarSign } from "react-icons/fa";
 import { PaperCreateModel } from "../../Api";
 import { toast } from "react-hot-toast";
@@ -24,8 +24,13 @@ export default function CreateProductModal({ isOpen, onClose }: CreateProductMod
     });
     const [selectedProperties, setSelectedProperties] = useState<number[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [refresh, setRefresh] = useState(false);
 
-    const properties = useFetchProperties();
+    const properties = useFetchProperties(refresh);
+
+    useEffect(() => {
+        setRefresh(prev => !prev);
+    }, [isOpen]);
     
     const handleCreatePaper = () => {
         const newPaper: PaperCreateModel = {

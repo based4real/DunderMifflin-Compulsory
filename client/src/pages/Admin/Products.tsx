@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { FaPlus } from "react-icons/fa";
+import { FaPlus, FaTag } from "react-icons/fa";
 import LeftNavigation from "../../components/Admin/LeftNavigation";
 import ProductTableItem from "../../components/Admin/ProductTableItem";
 import CreateProductModal from "../../components/Admin/CreateProductModal";
 import RestockProductModal from "../../components/Admin/RestockProductModal";
+import CreatePropertyModal from "../../components/Admin/CreatePropertyModal";
 import Pagination from "../../components/Pagination/Pagination";
 import ClearableSearch from "../../components/Input/ClearableSearch";
 import { useFetchPapers } from "../../hooks/useFetchPapers";
@@ -17,6 +18,7 @@ import { PaperOrderBy, SortOrder } from "../../Api";
 export default function AdminProductsPage() {
     const [isCreateProductModalOpen, setIsCreateProductModalOpen] = useState(false);
     const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
+    const [isCreatePropertyModalOpen, setIsCreatePropertyModalOpen] = useState(false);
     const [restockProductId, setRestockProductId] = useState<number[] | null>(null);
     const [restockProductName, setRestockProductName] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
@@ -55,6 +57,11 @@ export default function AdminProductsPage() {
     
     const closeRestockModal = () => {
         setIsRestockModalOpen(false);
+        refreshProducts();
+    };
+
+    const closeCreatePropertyModal = () => {
+        setIsCreatePropertyModalOpen(false);
         refreshProducts();
     };
 
@@ -140,6 +147,9 @@ export default function AdminProductsPage() {
                                 promptText="Search products..."
                             />
                         </div>
+                        <button className="btn btn-sm btn-secondary" onClick={() => setIsCreatePropertyModalOpen(true)}>
+                            <FaTag />
+                        </button>
                         <button className="btn btn-sm btn-primary" onClick={() => setIsCreateProductModalOpen(true)}>
                             <FaPlus />
                         </button>
@@ -234,6 +244,11 @@ export default function AdminProductsPage() {
                 onClose={closeRestockModal}
                 productIds={restockProductId || []}
                 productNames={restockProductName}
+            />
+
+            <CreatePropertyModal
+                isOpen={isCreatePropertyModalOpen}
+                onClose={closeCreatePropertyModal}
             />
         </div>
     );

@@ -5,7 +5,7 @@ import { PaperPropertiesSummaryAtom } from '../atoms/PaperPropertiesSummaryAtom'
 import { IsBackendReachableAtom } from '../atoms/IsBackendReachableAtom';
 import { useErrorHandler } from './useErrorHandler';
 
-export function useFetchProperties() {
+export function useFetchProperties(refresh?: boolean) {
     const { handleError } = useErrorHandler();
     const [isBackendReachable] = useAtom(IsBackendReachableAtom);
     const [properties, setProperties] = useAtom(PaperPropertiesSummaryAtom);
@@ -22,7 +22,7 @@ export function useFetchProperties() {
         };
 
         fetchProperties();
-    }, [isBackendReachable]);
+    }, [isBackendReachable, refresh]);
 
     return properties;
 }

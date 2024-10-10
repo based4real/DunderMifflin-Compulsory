@@ -71,6 +71,7 @@ export default function AdminCustomerDetailsPage() {
                     <th>Expected Delivery</th>
                     <th>Items</th>
                     <th>Total Price</th>
+                    <th>Status</th>
                     <th></th>
                 </tr>
                 </thead>

@@ -1,4 +1,5 @@
 import { OrderDetailViewModel } from "../../Api";
+import {FaEdit} from "react-icons/fa";
 
 export default function CustomerOrderTableItem({ order }: { order: OrderDetailViewModel }) {
     return (
@@ -17,6 +18,14 @@ export default function CustomerOrderTableItem({ order }: { order: OrderDetailVi
         </td>
         <td>
             ${order.totalPrice}
+        </td>
+        <td>
+            {order.status}
+        </td>
+        <td>
+            <button className="btn text-primary join-item">
+                <FaEdit />
+            </button>
         </td>
     </tr>
     )
