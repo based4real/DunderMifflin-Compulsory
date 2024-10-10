@@ -6,9 +6,10 @@ interface ProductTableItemProps {
     selected: boolean;
     onDiscontinue: (paperId: number) => void;
     onToggleSelect: (isSelected: boolean) => void;
+    onRestock: (paperId: number, paperName: string) => void;
 }
 
-export default function ProductTableItem({ paper, selected, onDiscontinue, onToggleSelect }: ProductTableItemProps) {
+export default function ProductTableItem({ paper, selected, onDiscontinue, onToggleSelect, onRestock }: ProductTableItemProps) {
     const properties = paper.properties ?? [];
 
     const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,7 +61,7 @@ export default function ProductTableItem({ paper, selected, onDiscontinue, onTog
             <td>${paper.price.toFixed(2)}</td>
             <th className="text-right">
                 <div className="join join-vertical lg:join-horizontal">
-                    <button className="btn text-primary join-item">
+                    <button className="btn text-primary join-item" onClick={() => onRestock(paper.id, paper.name)} disabled={paper.discontinued}>
                         <FaEdit />
                     </button>
                     <button className="btn text-primary join-item" onClick={() => onDiscontinue(paper.id)} disabled={paper.discontinued}>

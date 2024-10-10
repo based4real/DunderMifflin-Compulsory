@@ -3,23 +3,31 @@ import { FaPlus } from "react-icons/fa";
 import LeftNavigation from "../../components/Admin/LeftNavigation";
 import ProductTableItem from "../../components/Admin/ProductTableItem";
 import CreateProductModal from "../../components/Admin/CreateProductModal";
-import { useFetchPapers } from "../../hooks/useFetchPapers";
+import RestockProductModal from "../../components/Admin/RestockProductModal";
 import Pagination from "../../components/Pagination/Pagination";
-import { PaperOrderBy, SortOrder } from "../../Api";
 import ClearableSearch from "../../components/Input/ClearableSearch";
+import { useFetchPapers } from "../../hooks/useFetchPapers";
+import { useProductSelection } from '../../hooks/useProductSelection';
 import { api } from "../../http";
 import { toast } from "react-hot-toast";
 import { useAtom } from 'jotai';
-import { CartAtom } from '../../atoms/CartAtom'
+import { CartAtom } from '../../atoms/CartAtom';
+import { PaperOrderBy, SortOrder } from "../../Api";
 
 export default function AdminProductsPage() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    // Modals
+    const [isCreateProductModalOpen, setIsCreateProductModalOpen] = useState(false);
+    const [isRestockModalOpen, setIsRestockModalOpen] = useState(false);
+    const [restockProductId, setRestockProductId] = useState<number[] | null>(null);
+    const [restockProductName, setRestockProductName] = useState<string>("");
+
+    // Pagination og søgning
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize] = useState(10);
     const [searchTerm, setSearchTerm] = useState("");
     const [refresh, setRefresh] = useState(false);
-    const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
-    const [selectAll, setSelectAll] = useState(false);
+
+    // Cart
     const [cart, setCart] = useAtom(CartAtom);
     
     const { papers, loading, totalPages } = useFetchPapers({
@@ -31,36 +39,41 @@ export default function AdminProductsPage() {
         refresh
     });
 
+    const {
+        selectedProductIds,
+        selectAll,
+        handleSelectAll,
+        handleToggleSelect,
+        handleDeselectAll,
+        resetSelection
+    } = useProductSelection(papers);
+
     const refreshProducts = () => {
         setRefresh(prev => !prev);
+        resetSelection();
     };
 
-    const handleModalClose = () => {
-        setIsModalOpen(false);
+    const closeCreateProductModal = () => setIsCreateProductModalOpen(false);
+    const closeRestockModal = () => {
+        setIsRestockModalOpen(false);
         refreshProducts();
     };
 
-    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const isChecked = e.target.checked;
-        setSelectAll(isChecked);
-        setSelectedProductIds(isChecked ? papers.map(paper => paper.id) : []);
+    const openRestockModal = (productId: number, productName: string) => {
+        setRestockProductId([productId]);
+        setRestockProductName(productName);
+        setIsRestockModalOpen(true);
     };
-
-    const handleDeselectAll = () => {
-        setSelectedProductIds([]);
-        setSelectAll(false);
-    };
-
-    const handleToggleSelect = (isSelected: boolean, productId: number) => {
-        setSelectedProductIds((prevSelectedIds) => {
-            const updatedSelectedIds = isSelected
-                ? [...prevSelectedIds, productId]
-                : prevSelectedIds.filter((id) => id !== productId);
-            
-            setSelectAll(updatedSelectedIds.length === papers.length);
-
-            return updatedSelectedIds;
-        });
+    
+    const handleBulkRestock = () => {
+        if (selectedProductIds.length === 0) {
+            toast.error("No products selected for bulk restock.");
+            return;
+        }
+        const selectedProductNames = getSelectedProductNames();
+        setRestockProductId(selectedProductIds);
+        setRestockProductName(selectedProductNames);
+        setIsRestockModalOpen(true);
     };
 
     const handleDiscontinue = (paperId: number) => {
@@ -80,14 +93,11 @@ export default function AdminProductsPage() {
             toast.error("No products selected for bulk discontinue.");
             return;
         }
-
         api.paper.discontinueBulk(selectedProductIds)
             .then(() => {
                 toast.success("Selected products have been discontinued.");
                 refreshProducts();
                 removeProductsFromCart(selectedProductIds);
-                setSelectedProductIds([]);
-                setSelectAll(false);
             })
             .catch(() => {
                 toast.error("Failed to discontinue selected products.");
@@ -98,14 +108,15 @@ export default function AdminProductsPage() {
         const updatedCartEntries = cart.cartEntries.filter(
             (entry) => !productIds.includes(entry.paper.id)
         );
-
-        const updatedCart = {
-            ...cart,
-            cartEntries: updatedCartEntries,
-        };
-
+        const updatedCart = { ...cart, cartEntries: updatedCartEntries };
         setCart(updatedCart);
         localStorage.setItem('cartItems', JSON.stringify(updatedCart));
+    };
+
+    const getSelectedProductNames = () => {
+        return papers.filter(paper => selectedProductIds.includes(paper.id))
+                     .map(paper => paper.name)
+                     .join(", ");
     };
 
     return (
@@ -130,7 +141,7 @@ export default function AdminProductsPage() {
                                 promptText="Search products..."
                             />
                         </div>
-                        <button className="btn btn-sm btn-primary" onClick={() => setIsModalOpen(true)}>
+                        <button className="btn btn-sm btn-primary" onClick={() => setIsCreateProductModalOpen(true)}>
                             <FaPlus />
                         </button>
                     </div>
@@ -141,6 +152,12 @@ export default function AdminProductsPage() {
                             onClick={handleBulkDiscontinue}
                             disabled={selectedProductIds.length === 0}>
                             Discontinue Selected
+                        </button>
+                        <button
+                            className="btn btn-sm btn-primary"
+                            onClick={handleBulkRestock}
+                            disabled={selectedProductIds.length === 0}>
+                            Restock Selected
                         </button>
                         <button
                             className="btn btn-sm btn-secondary"
@@ -189,6 +206,7 @@ export default function AdminProductsPage() {
                                             selected={selectedProductIds.includes(paper.id)}
                                             onDiscontinue={handleDiscontinue}
                                             onToggleSelect={(isSelected) => handleToggleSelect(isSelected, paper.id)}
+                                            onRestock={openRestockModal}
                                         />
                                     ))
                                 )}
@@ -208,8 +226,15 @@ export default function AdminProductsPage() {
             </div>
             
             <CreateProductModal
-                isOpen={isModalOpen}
-                onClose={handleModalClose}
+                isOpen={isCreateProductModalOpen}
+                onClose={closeCreateProductModal}
+            />
+
+            <RestockProductModal
+                isOpen={isRestockModalOpen}
+                onClose={closeRestockModal}
+                productIds={restockProductId || []}
+                productNames={restockProductName}
             />
         </div>
     );
