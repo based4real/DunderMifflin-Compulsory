@@ -738,10 +738,10 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      * No description
      *
      * @tags Paper
-     * @name GetPapersByIds
+     * @name GetByIds
      * @request POST:/api/Paper/getByIds
      */
-    getPapersByIds: (data: number[], params: RequestParams = {}) =>
+    getByIds: (data: number[], params: RequestParams = {}) =>
       this.request<PaperDetailViewModel[], any>({
         path: `/api/Paper/getByIds`,
         method: "POST",
