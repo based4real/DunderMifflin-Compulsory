@@ -1,4 +1,4 @@
-import { FaEdit, FaEye } from "react-icons/fa";
+import { FaWarehouse, FaBan } from "react-icons/fa";
 import { PaperDetailViewModel } from "../../Api";
 
 interface ProductTableItemProps {
@@ -61,11 +61,11 @@ export default function ProductTableItem({ paper, selected, onDiscontinue, onTog
             <td>${paper.price.toFixed(2)}</td>
             <th className="text-right">
                 <div className="join join-vertical lg:join-horizontal">
-                    <button className="btn text-primary join-item" onClick={() => onRestock(paper.id, paper.name)} disabled={paper.discontinued}>
-                        <FaEdit />
+                    <button className="btn text-accent join-item" onClick={() => onRestock(paper.id, paper.name)} disabled={paper.discontinued}>
+                        <FaWarehouse />
                     </button>
-                    <button className="btn text-primary join-item" onClick={() => onDiscontinue(paper.id)} disabled={paper.discontinued}>
-                        <FaEye />
+                    <button className="btn text-error join-item" onClick={() => onDiscontinue(paper.id)} disabled={paper.discontinued}>
+                        <FaBan />
                     </button>
                 </div>
             </th>

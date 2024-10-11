@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { FaPlus, FaTag } from "react-icons/fa";
+import { FaPlus, FaTag, FaTimes, FaBan, FaWarehouse } from "react-icons/fa";
 import LeftNavigation from "../../components/Admin/LeftNavigation";
 import ProductTableItem from "../../components/Admin/ProductTableItem";
 import CreateProductModal from "../../components/Admin/CreateProductModal";
 import RestockProductModal from "../../components/Admin/RestockProductModal";
 import CreatePropertyModal from "../../components/Admin/CreatePropertyModal";
 import Pagination from "../../components/Pagination/Pagination";
+import PageSizeSelector from "../../components/Pagination/PageSizeSelector";
 import ClearableSearch from "../../components/Input/ClearableSearch";
 import { useFetchPapers } from "../../hooks/useFetchPapers";
 import { useProductSelection } from '../../hooks/useProductSelection';
@@ -22,12 +23,12 @@ export default function AdminProductsPage() {
     const [restockProductId, setRestockProductId] = useState<number[] | null>(null);
     const [restockProductName, setRestockProductName] = useState<string>("");
     const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize] = useState(10);
+    const [pageSize, setPageSize] = useState(10);
     const [searchTerm, setSearchTerm] = useState("");
     const [refresh, setRefresh] = useState(false);
     const [cart, setCart] = useAtom(CartAtom);
     
-    const { papers, loading, totalPages } = useFetchPapers({
+    const { papers, loading, totalPages, totalItems } = useFetchPapers({
         page: currentPage,
         pageSize,
         search: searchTerm,
@@ -132,13 +133,13 @@ export default function AdminProductsPage() {
                 <LeftNavigation />
                 
                 <main className="flex-1 pl-4 pr-4 rounded-box">
-                    <div className="flex w-auto flex-row items-center">
+                    <div className="flex w-auto flex-row items-center justify-between">
                         <div className="flex mt-2 justify-center">
                             <h3 className="font-bold text-2xl mb-2">Products</h3>
                         </div>
                     </div>
-
-                    <div className="flex justify-between items-center mb-4">
+                    
+                    <div className="flex items-center justify-between mb-4">
                         <div className="w-64">
                             <ClearableSearch
                                 searchTerm={searchTerm}
@@ -147,33 +148,43 @@ export default function AdminProductsPage() {
                                 promptText="Search products..."
                             />
                         </div>
-                        <button className="btn btn-sm btn-secondary" onClick={() => setIsCreatePropertyModalOpen(true)}>
-                            <FaTag />
-                        </button>
-                        <button className="btn btn-sm btn-primary" onClick={() => setIsCreateProductModalOpen(true)}>
-                            <FaPlus />
-                        </button>
+                        <PageSizeSelector
+                            pageSize={pageSize}
+                            onPageSizeChange={(size) => {
+                                setPageSize(size);
+                                setCurrentPage(1);
+                            }}
+                        />
                     </div>
 
-                    <div className="mb-4 flex space-x-2">
-                        <button
-                            className="btn btn-sm btn-danger"
-                            onClick={handleBulkDiscontinue}
-                            disabled={selectedProductIds.length === 0}>
-                            Discontinue Selected
-                        </button>
-                        <button
-                            className="btn btn-sm btn-primary"
-                            onClick={handleBulkRestock}
-                            disabled={selectedProductIds.length === 0}>
-                            Restock Selected
-                        </button>
-                        <button
-                            className="btn btn-sm btn-secondary"
-                            onClick={handleDeselectAll}
-                            disabled={selectedProductIds.length === 0}>
+                    <div className="mb-4 flex justify-between items-center">
+                        <button className="btn btn-sm btn-secondary"
+                                onClick={handleDeselectAll}
+                                disabled={selectedProductIds.length === 0}>
+                            <FaTimes className="mr-1" />
                             Deselect All
                         </button>
+
+                        <div className="flex space-x-2">
+                            <button className="btn btn-sm btn-accent"
+                                    onClick={handleBulkRestock}
+                                    disabled={selectedProductIds.length === 0}>
+                                <FaWarehouse className="mr-1" />
+                                Restock Selected
+                            </button>
+                            <button className="btn btn-sm btn-error"
+                                    onClick={handleBulkDiscontinue}
+                                    disabled={selectedProductIds.length === 0}>
+                                <FaBan className="mr-1" />
+                                Discontinue Selected
+                            </button>
+                            <button className="btn btn-sm btn-primary" onClick={() => setIsCreatePropertyModalOpen(true)}>
+                                <FaTag />
+                            </button>
+                            <button className="btn btn-sm btn-primary" onClick={() => setIsCreateProductModalOpen(true)}>
+                                <FaPlus />
+                            </button>
+                        </div>
                     </div>
 
                     {loading ? (

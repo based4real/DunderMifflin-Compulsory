@@ -1,4 +1,4 @@
-import { FaEdit, FaEye, FaTrash } from "react-icons/fa";
+import { FaEye } from "react-icons/fa";
 import { CustomerOrderDetailViewModel } from "../../Api";
 import { useNavigate } from "react-router-dom";
 

@@ -14,6 +14,7 @@ export default function AdminCustomerDetailsPage() {
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
+    const [totalItems, setTotalItems] = useState(0);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
     const [currentStatus, setCurrentStatus] = useState<OrderStatus | null>(null);
@@ -30,6 +31,7 @@ export default function AdminCustomerDetailsPage() {
             .then(response => {
                 setCustomer(response.data);
                 setTotalPages(response.data.pagingInfo.totalPages ?? 1);
+                setTotalItems(response.data.pagingInfo.totalItems ?? 0);
             })
             .catch(error => {
                 console.error("Error fetching customer details: ", error);
@@ -67,7 +69,7 @@ export default function AdminCustomerDetailsPage() {
                 </div>
             </div>
             <div className="flex items-center justify-between">
-                <PageInfoDisplay currentPage={currentPage} pageSize={itemsPerPage} totalItems={totalPages} />
+                <PageInfoDisplay currentPage={currentPage} pageSize={itemsPerPage} totalItems={totalItems} />
                 <PageSizeSelector
                     pageSize={itemsPerPage}
                     onPageSizeChange={(size) => {
@@ -107,11 +109,12 @@ export default function AdminCustomerDetailsPage() {
                 </tbody>
             </table>
             </div>
-            <Pagination
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                />
+                {totalPages > 1 && (
+                    <Pagination currentPage={currentPage} 
+                                totalPages={totalPages} 
+                                onPageChange={handlePageChange}
+                    />
+                )}
             </div>
             </main>
         </div>

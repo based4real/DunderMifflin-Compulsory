@@ -1,4 +1,3 @@
-import { FaPlus, FaSearch } from "react-icons/fa";
 import LeftNavigation from "../../components/Admin/LeftNavigation";
 import { api } from "../../http";
 import CustomerTableItem from "../../components/Admin/CustomerTableItem";
@@ -49,7 +48,7 @@ export default function AdminCustomersPage() {
                 </div>
             </div>
             <div className="flex items-center justify-between">
-                <PageInfoDisplay currentPage={pagingInfo.currentPage} pageSize={pagingInfo.itemsPerPage} totalItems={pagingInfo.totalPages} />
+                <PageInfoDisplay currentPage={pagingInfo.currentPage} pageSize={pagingInfo.itemsPerPage} totalItems={pagingInfo.totalItems} />
                 <PageSizeSelector
                     pageSize={pagingInfo.itemsPerPage}
                     onPageSizeChange={(size) => {
@@ -79,11 +78,14 @@ export default function AdminCustomersPage() {
                 </tbody>
             </table>
             </div>
-            <Pagination
-                    currentPage={pagingInfo.currentPage}
-                    totalPages={pagingInfo.totalPages}
-                    onPageChange={(page) => setPagingInfo(prev => ({ ...prev, currentPage: page }))}
-                />
+
+                {pagingInfo.totalPages > 1 && (
+                    <Pagination
+                        currentPage={pagingInfo.currentPage}
+                        totalPages={pagingInfo.totalPages}
+                        onPageChange={(page) => setPagingInfo(prev => ({ ...prev, currentPage: page }))}
+                    />
+                )}
             </div>
             </main>
         </div>

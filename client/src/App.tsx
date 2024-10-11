@@ -1,11 +1,11 @@
-import React, {useEffect} from "react";
+import {useEffect} from "react";
 import {useAtom} from "jotai";
 import {ThemeAtom} from "./atoms/ThemeAtom";
 import { Routes, Route } from 'react-router-dom';
 import Navigation from "./components/Navigation/Navigation";
 import DaisyToaster from "./components/Feedback/DaisyToaster";
 import CheckBackend from "./components/Feedback/CheckBackend";
-import CartUpdater from './components/Cart/CartUpdater';
+import { useCartUpdater } from './hooks/useCartUpdater';
 import HomePage from "./pages/Home";
 import ShopPage from "./pages/Shop";
 import CartPage from "./pages/Cart";
@@ -15,18 +15,17 @@ import AdminCustomersPage from "./pages/Admin/Customers";
 import AdminCustomerDetailsPage from "./pages/Admin/CustomerDetailsPage";
 
 const App = () => {
-  const [theme, setTheme] = useAtom(ThemeAtom);
-
+  const [theme] = useAtom(ThemeAtom);
+  
   useEffect(() => {
       localStorage.setItem('theme', theme);
       document.documentElement.setAttribute('data-theme', theme);
-  }, [theme])
-
+  }, [theme]);
+  
   return (
     <>
     <Navigation/>
       <DaisyToaster />
-      <CartUpdater />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/shop" element={<ShopPage />} />

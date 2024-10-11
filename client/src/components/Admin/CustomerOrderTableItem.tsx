@@ -1,5 +1,5 @@
 import { OrderDetailViewModel } from "../../Api";
-import {FaEdit} from "react-icons/fa";
+import { FaEdit } from "react-icons/fa";
 
 interface CustomerOrderTableItemProps {
     order: OrderDetailViewModel;
